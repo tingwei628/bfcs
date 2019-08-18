@@ -57,7 +57,7 @@ public class Program
 					Console.Write("{0}", (char)tape[pos_tape]);
 					pos_command++;
 					break;
-			    case ',':
+			    	case ',':
 					tape[pos_tape] = (int)Console.Read();
 					pos_command++;
 					break;
