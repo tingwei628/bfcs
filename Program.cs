@@ -3,19 +3,6 @@ using System.Collections.Generic;
 					
 public class Program
 {
-	// ref: brainfuck visualizer
-	// http://fatiherikli.github.io/brainfuck-visualizer
-	
-	
-	// test: read from file brainfk.bf
-	// test: nested [ ] (V)
-	// test: ',' convert number to char;
-	// test: if new_line, space or tab , how to remove
-	
-	
-	// test: is it a valid .bf ? write an ast ? (lexer, ...tokens...)
-	// test: check if memory error e.g. pos_tape = -1
-	
 	
 	public static void Main()
 	{
