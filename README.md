@@ -15,4 +15,13 @@ Todo
 	[ ] Read ',' (which converts number to char)
 	[ ] Allowed new_line, space or tab in *.bf
 	[ ] Validated .bf ? (AST)
-	[ ] Check if memory error e.g. pos_tape = -1
+	[ ] Checked if memory error e.g. pos_tape = -1
+	[ ] Satisfied the basic interpreter function, e.g. closure, scope ... 
+	
+--- 
+
+Roadmap
+
+	[ ] Build a AST for Brainfuck and validate the syntax
+	[ ] Wrap the as `VSCode` plugin and release
+	[ ] Write a Brainfuck Compiler in C# (maybe it is in another repository)
