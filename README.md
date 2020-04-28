@@ -1,8 +1,6 @@
 # bfcs 
 
-> Brainfuck compiler in C#
-
-> Brainfuck interpreter in C#
+> Brainfuck compiler/interpreter in C#
 
 # WIP
 
