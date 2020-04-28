@@ -7,92 +7,71 @@ using System.Text.RegularExpressions;
 [ ] Allowed new_line, space or tab in *.bf
 
 */
-public class Program
-{
-	
-	public static void Main()
-	{
-    string raw_commands = @"+++++ +++++             (initialize counter (cell #0) to 10)
-[                       (use loop to set the next four cells to 70/100/30/10)
-    > +++++ ++          (    add  7 to cell #1)
-    > +++++ +++++       (    add 10 to cell #2 )
-    > +++               (    add  3 to cell #3)
-    > +                 (    add  1 to cell #4)
-    <<<< -              (    decrement counter (cell #0))
-]                   
-> ++ .                  (print 'H')
-> + .                   (print 'e')
-+++++ ++ .              (print 'l')
-.                       (print 'l')
-+++ .                   (print 'o')
-> ++ .                  (print ' ')
-<< +++++ +++++ +++++ .  (print 'W')
-> .                     (print 'o')
-+++ .                   (print 'r')
------ - .               (print 'l')
------ --- .             (print 'd')
-> + .                   (print bang)
-> .                     (print '\n')";
-		//string commands = @"++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.";
-		//string commands = @"++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.";
-    string commands=string.Empty;
-    // remove all characters except []<>+-.,
-    commands = Regex.Replace(raw_commands, @"[^\[\]<>\+-\.,]", "");
-		// initially all 0 on the tape
-		int[] tape = new int[1024 * 1024];
-		int commands_size = commands.Length;
-		Stack<int> command_pos_bracket = new Stack<int>();
-		int pos_command = 0;
-		int pos_tape = 0;
+public class Program {
 
-		while(pos_command < commands_size) {
-			switch(commands[pos_command]) {
-				case '[':
-					if(tape[pos_tape] != 0){
-						pos_command++;
-						command_pos_bracket.Push(pos_command);
-					}
-					else {
-						while(commands[pos_command] != ']') {
-							pos_command++; 
-						}						
-					}
-					break;
-				case ']':					
-					if (tape[pos_tape] == 0) {
-						pos_command++;
-						// jump out of the loop 
-						if (command_pos_bracket.Count > 0) command_pos_bracket.Pop();
-					}
-					else { pos_command = command_pos_bracket.Peek(); }
-					break;
-				case '+':
-					tape[pos_tape]++;
-					pos_command++;
-					break;
-				case '-':
-					tape[pos_tape]--;
-					pos_command++;
-					break;
-				case '>':
-					pos_tape++;
-					pos_command++;
-					break;
-				case '<':
-					pos_tape--;
-					pos_command++;
-					break;
-				case '.':
-					Console.Write("{0}", (char)tape[pos_tape]);
-					pos_command++;
-					break;
-			    	case ',':
-					tape[pos_tape] = (int)Console.Read();
-					pos_command++;
-					break;
-				default:
-					break;
-			}
-		}
-	}
+ public static void check_tape_dic(Dictionary < int, int > tape_dic, int pos_tape) {
+  int pos_tape_value = 0;
+
+  if (tape_dic.ContainsKey(pos_tape) == false) {
+   tape_dic.Add(pos_tape, pos_tape_value);
+  }
+ }
+ public static void Main() {
+  string raw_commands = @ "+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
+  string commands = string.Empty;
+  // remove all characters except []<>+-.,
+  commands = Regex.Replace(raw_commands, @ "[^\[\]<>\+-\.,]", string.Empty);
+  int commands_size = commands.Length;
+  int pos_command = 0;
+  int pos_tape = 0;
+  int bracket = 1;
+  // key: pos_tape -> value: pos_tape_value
+  Dictionary < int, int > tape_dic = new Dictionary < int, int > ();
+  while (pos_command < commands_size) {
+   check_tape_dic(tape_dic, pos_tape);
+   switch (commands[pos_command]) {
+    case '[':
+     if (tape_dic[pos_tape] == 0) {
+      bracket = 1;
+      while (bracket >= 1) {
+       pos_command++;
+       if (commands[pos_command] == '[') bracket++;
+       else if (commands[pos_command] == ']') bracket--;
+      }
+     }
+     break;
+    case ']':
+     if (tape_dic[pos_tape] != 0) {
+      bracket = 1;
+      while (bracket >= 1) {
+       pos_command--;
+       if (commands[pos_command] == '[') bracket--;
+       else if (commands[pos_command] == ']') bracket++;
+      }
+     }
+     break;
+    case '+':
+     tape_dic[pos_tape]++;
+     break;
+    case '-':
+     tape_dic[pos_tape]--;
+     break;
+    case '>':
+     pos_tape++;
+     break;
+    case '<':
+     pos_tape--;
+     break;
+    case '.':
+     Console.Write("{0}", (char) tape_dic[pos_tape]);
+     break;
+    case ',':
+     tape_dic[pos_tape] = (int) Console.Read();
+     break;
+    default:
+     break;
+   }
+   pos_command++;
+  }
+ }
 }
