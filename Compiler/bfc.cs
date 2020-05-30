@@ -24,7 +24,9 @@ using System.Collections.Generic;
 */
 class MainClass {
   public static void Main (string[] args) {
-    string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
+    if (args.Length < 1) throw new ArgumentNullException("no bf file");
+    string bf_filepath = args[0];
+    string str = File.ReadAllText(bf_filepath);
     var result = new Lexer(str).lex();
     foreach (var r in result) {
       Console.WriteLine(r._literal);
