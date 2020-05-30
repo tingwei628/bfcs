@@ -2,7 +2,7 @@
 	
 Todo
 
-	[ ] Read from file *.bf
+	[V] Read from file *.bf
 	[V] Allowed nested loop ([, ])
 	[V] Read ',' (which converts number to char)
 	[V] Allowed new_line, space or tab in *.bf
