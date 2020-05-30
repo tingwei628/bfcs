@@ -13,13 +13,13 @@ Todo
 
 compile bfc.cs
 ```
-mcs bfc.cs
+mcs bfi.cs
 
 ```
 
-compile test.bf to CIL
+execute test.bf
 ```
-mono bfc.exe ./test.bf
+mono bfi.exe ./test.bf
 
 ```
 
