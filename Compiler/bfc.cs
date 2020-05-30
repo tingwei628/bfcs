@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 /*
 
     Reading the source code file
@@ -22,17 +23,16 @@ using System.Collections.Generic;
     ILGenerator
 
 */
-class MainClass {
-  public static void Main (string[] args) {
-    if (args.Length < 1) throw new ArgumentNullException("no bf file");
-    string bf_filepath = args[0];
+public class BFC {
+  public string[] _args { get; }
+  public BFC(string[] args) {
+    this._args = args;
+  }
+  public void compile() {
+    if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
+    string bf_filepath = this._args[0];
     string str = File.ReadAllText(bf_filepath);
     var result = new Lexer(str).lex();
-    foreach (var r in result) {
-      Console.WriteLine(r._literal);
-      Console.WriteLine(r._token_Enum);
-      Console.WriteLine(r._pos);
-    }
   }
 }
 
