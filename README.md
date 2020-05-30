@@ -2,8 +2,10 @@
 
 > Brainfuck compiler/interpreter in C#
 
-# WIP
 
 
-### See [brainfuck visualizer@fatiherikli](http://fatiherikli.github.io/brainfuck-visualizer)
+### Reference
 
+[brainfuck visualizer@fatiherikli](http://fatiherikli.github.io/brainfuck-visualizer)
+
+[Brainfuck_implementations](https://esolangs.org/wiki/Brainfuck_implementations)
