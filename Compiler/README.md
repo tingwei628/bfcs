@@ -15,12 +15,12 @@ Target: CIL
 
 compile bfc.cs
 ```
-mcs bfc.cs
+mcs -out:main.exe bfc.cs main.cs
 
 ```
 
 compile test.bf to CIL
 ```
-mono bfc.exe ./test.bf
+mono main.exe ./test.bf
 
 ```
