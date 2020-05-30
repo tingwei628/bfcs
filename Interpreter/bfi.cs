@@ -16,8 +16,11 @@ public class Program {
    tape_dic.Add(pos_tape, pos_tape_value);
   }
  }
- public static void Main() {
-  string raw_commands = @ "+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
+ public static void Main(string[] args) {
+  //string raw_commands = @ "+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
+  if (args.Length < 1) throw new ArgumentNullException("no bf file");
+  string bf_filepath = args[0];
+  string raw_commands = File.ReadAllText(bf_filepath);
   string commands = string.Empty;
   // remove all characters except []<>+-.,
   commands = Regex.Replace(raw_commands, @ "[^\[\]<>\+-\.,]", string.Empty);
