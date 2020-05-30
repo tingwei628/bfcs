@@ -8,4 +8,4 @@
 
 [brainfuck visualizer@fatiherikli](http://fatiherikli.github.io/brainfuck-visualizer)
 
-[Brainfuck_implementations](https://esolangs.org/wiki/Brainfuck_implementations)
+[other brainfuck implementations](https://esolangs.org/wiki/Brainfuck_implementations)
