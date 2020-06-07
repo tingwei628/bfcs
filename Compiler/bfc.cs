@@ -92,40 +92,57 @@ public class Lexer {
 Program → Instr Program | ε
 
 Instr → '+' | '-' | '>' | '<' | ',' | '.' | '[' Program ']'
+
+LL(1)
+
 */
-public class AST {
-  
-}
-public class Node {
+public class ASTNode {
+  public ASTNode LeftNode { get; set; }
+  public ASTNode RightNode { get; set; }
   public char Value { get; }
-  public Node(Token token) {
+  public ASTNode() {
+  }
+  public ASTNode(Token token) {
     Value = token.Literal;
   }
 }
 public class Parser {
   private List<Token>_tokens = new List<Token>();
-  private int _currentTokenIndex;
+  private int _currentIndex;
+  private int _endIndex;
   public Parser(List<Token> tokens) {
     _tokens = tokens;
     _currentTokenIndex = 0;
+    _endIndex = tokens.Length-1;
   }
-  public AST ast() {
+  public ASTNode ast() {
+    ASTNode empty_node_ast = new ASTNode();
+    ASTNode ast = _program(empty_node_ast);
+    return ast;
+  }
+  private ASTNode _program(ASTNode ast) {
     Token token = _getNextToken();
-    AST astree = _program(token);
-    return astree;
+    if (isTerminals(token.Literal)) {
+      ast.LeftNode = _instr();
+      ASTNode empty_node_ast = new ASTNode();
+      ast.RightNode = _program(empty_node_ast);
+    }
+    return ast;
   }
-  private AST _program(Token token) {
-
-  }
-  private void _instr() {
-    if () {
-
+  private ASTNode _instr() {
+    Token token = _getNextToken();
+    if ((isTerminals(token.Literal)) {
+      return new ASTNode(token.Literal);
     }
     else if () {
 
     }
   }
+  private bool isTerminals(char literal) {
+    return literal == '+' || literal == '-' || literal == '>' || literal == '<' || literal == ',' || literal == '.';
+  }
   private Token _getNextToken() {
+    if (_endIndex < _currentTokenIndex) return null;
     return _tokens[_currentTokenIndex++];  
   }
 }
