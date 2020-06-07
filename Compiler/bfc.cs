@@ -31,9 +31,13 @@ public class BFC {
     this._args = args;
   }
   public void compile() {
-    if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
-    string bf_filepath = this._args[0];
-    string str = File.ReadAllText(bf_filepath);
+    //if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
+    //string bf_filepath = this._args[0];
+    //string str = File.ReadAllText(bf_filepath);
+//string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.
+//";
+string str = @"[+]";
+ 
     var tokens = new Lexer(str).lex();
     var ast = new Parser(tokens).ast();
   }
@@ -53,7 +57,7 @@ public class Token {
   public char Literal { get; }
   public Token_Enum TokenType { get; }
   public int _pos;
-  public bool IsScan { get; set; }
+  public bool IsLoopScan { get; set; }
   public Token(char literal, Token_Enum token_Enum, int pos) {
     TokenType = token_Enum;
     Literal = literal;
@@ -87,15 +91,10 @@ public class Lexer {
     return tokens;
   }
 }
-
 /*
-	
 Program → Instr Program | ε
-
 Instr → '+' | '-' | '>' | '<' | ',' | '.' | '[' Program ']'
-
 LL(1)
-
 */
 public class ASTNode {
   public ASTNode LeftNode { get; set; }
@@ -126,10 +125,8 @@ public class Parser {
     if (_endIndex == -1)  return null;
     if (_isNextTokenEOF()) return null;
     
-    
     ASTNode leftNode = _instr();
     if (leftNode == null) return null;
-
     ASTNode rightNode = _program();
     if (rightNode == null) return leftNode;
     
@@ -141,12 +138,11 @@ public class Parser {
   }
   private ASTNode _instr() {
     Token token = _getCurrentToken();
-    
+    //Console.WriteLine("_instr token " + token.Literal + token._pos + token.IsLoopScan);
     if (token == null) return null;
-    if (token.IsScan == true) return null;
+    if (token.IsLoopScan == true) return null;
 
     if (isTerminals(token.Literal)){
-      //token.IsScan = true;
       return new ASTNode(token);
     }
     else if (token.TokenType == Token_Enum.BeginLoop) {
@@ -155,26 +151,24 @@ public class Parser {
       while(bracket_right > 0) {
         if (_tokens[searchIndex_right].TokenType == Token_Enum.EndLoop) bracket_right--;
         else if (_tokens[searchIndex_right].TokenType == Token_Enum.BeginLoop) bracket_right++;
-        if (_endIndex < searchIndex_right) break;
+        if (_endIndex < searchIndex_right || bracket_right == 0) break;
         searchIndex_right++;
       }
       if (bracket_right > 0 ) {
         throw new Exception("no found ]");
       }
-      
       ASTNode ast = new ASTNode();
       ast.LeftNode = new ASTNode(token);
+      ast.RightNode = new ASTNode(_tokens[searchIndex_right]);
+      token.IsLoopScan = true;
+      _tokens[searchIndex_right].IsLoopScan = true;
       ASTNode middleNode = _program();
       if (middleNode != null)  ast.MiddleNode = middleNode;
-      ast.RightNode = new ASTNode(_tokens[searchIndex_right]);
-      token.IsScan = true;
-      _tokens[searchIndex_right].IsScan = true;
-
+      
       return ast;
     }
     //extra ]
     throw new Exception("unkown error");
-    return null;
   }
   private bool isTerminals(char literal) {
     return literal == '+' || literal == '-' || literal == '>' || literal == '<' || literal == ',' || literal == '.';
