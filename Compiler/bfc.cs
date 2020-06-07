@@ -9,16 +9,18 @@ using System.IO;
     The Intermediate Code Generator which takes the Source AST and transforms it into an Intermediate AST
     The Target Code Generator which takes the Intermediate AST and transforms it into a Target AST
     The Target Code Writer which takes the Target AST and writes actual x86 Assembly code as output.
-
+ 
+    https://cs.lmu.edu/~ray/notes/ohmexamples/
 
    
     Lexer(token)
-    Parser(syntax, AST) ? Validate?
+    Parser(syntax, AST, LL parser) ? Validate? [] should be in pair
     Semantic Analyzer (type checking, Label checking and Flow control checking.)
     Code generator (emit IL)
     Optimizer (JIT...)
 
-
+    Parser : https://www.cs.fsu.edu/~engelen/courses/COP402003/board.html#production
+    
     System.Reflection.Emit
     ILGenerator
 
@@ -32,7 +34,8 @@ public class BFC {
     if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
     string bf_filepath = this._args[0];
     string str = File.ReadAllText(bf_filepath);
-    var result = new Lexer(str).lex();
+    var tokens = new Lexer(str).lex();
+    var ast = new Parser(tokens).ast();
   }
 }
 
@@ -47,12 +50,12 @@ public enum Token_Enum {
   MoveRight, /*>*/
 }
 public class Token {
-  public char _literal;
-  public Token_Enum _token_Enum;
+  public char Literal { get; }
+  public Token_Enum TokenType { get; }
   public int _pos;
   public Token(char literal, Token_Enum token_Enum, int pos) {
-    _token_Enum = token_Enum;
-    _literal = literal;
+    TokenType = token_Enum;
+    Literal = literal;
     _pos = pos;
   }
 }
@@ -76,7 +79,7 @@ public class Lexer {
         case '.': this.tokens.Add(new Token('.', Token_Enum.Output, j)); j++; break;
         case '<': this.tokens.Add(new Token('<', Token_Enum.MoveLeft, j)); j++; break;
         case '>': this.tokens.Add(new Token('>', Token_Enum.MoveRight, j)); j++; break;
-        default: break;
+        default: break; // ignore Error token
       }
       i++;
     }
@@ -84,13 +87,46 @@ public class Lexer {
   }
 }
 
+/*
+	
+Program → Instr Program | ε
+
+Instr → '+' | '-' | '>' | '<' | ',' | '.' | '[' Program ']'
+*/
+public class AST {
+  
+}
+public class Node {
+  public char Value { get; }
+  public Node(Token token) {
+    Value = token.Literal;
+  }
+}
 public class Parser {
   private List<Token>_tokens = new List<Token>();
+  private int _currentTokenIndex;
   public Parser(List<Token> tokens) {
     _tokens = tokens;
+    _currentTokenIndex = 0;
   }
-  public List<Token> ast() {
-    return null;
+  public AST ast() {
+    Token token = _getNextToken();
+    AST astree = _program(token);
+    return astree;
+  }
+  private AST _program(Token token) {
+
+  }
+  private void _instr() {
+    if () {
+
+    }
+    else if () {
+
+    }
+  }
+  private Token _getNextToken() {
+    return _tokens[_currentTokenIndex++];  
   }
 }
 public class SemanticAnalyzer {
