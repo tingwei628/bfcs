@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 /*
     Reading the source code file
     The Lexical Analyzer which translates the source file to a stream of tokens
@@ -30,10 +31,13 @@ public class BFC {
     //if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
     //string bf_filepath = this._args[0];
     //string str = File.ReadAllText(bf_filepath);
-string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.
-"; 
+//string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.
+//";
+string str ="[+++]"; 
     var tokens = new Lexer(str).lex();
     var ast = new Parser(tokens).ast();
+    var visitor = new ASTVisitor(ast);
+    visitor.print();
   }
 }
 
@@ -173,6 +177,24 @@ public class Parser {
   private bool _isNextTokenEOF () {
     return _endIndex < _currentIndex;
   }
+}
+public class ASTVisitor {
+  public ASTNode _ast { get; }
+  public StringBuilder _ast_str {get; set ;}
+  public ASTVisitor(ASTNode ast) {
+    _ast = ast;
+    _ast_str = new StringBuilder(); 
+  }
+  public void print() {
+    walk(_ast, 0);
+  }
+  private void walk(ASTNode node, int layer) {
+    if (node == null) return;
+    if (node.Value != '\0') Console.WriteLine(new string(' ', layer) + node.Value);
+    walk(node.LeftNode, layer+1);
+    walk(node.MiddleNode, layer+1);
+    walk(node.RightNode, layer+1);
+  } 
 }
 public class SemanticAnalyzer {
 }
