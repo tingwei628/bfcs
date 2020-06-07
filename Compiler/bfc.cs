@@ -127,9 +127,11 @@ public class Parser {
     if (_isNextTokenEOF()) return null;
     
     ASTNode leftNode = _instr();
-    ASTNode rightNode = _program();
     if (leftNode == null) return null;
+
+    ASTNode rightNode = _program();
     if (rightNode == null) return leftNode;
+    
     ASTNode ast = new ASTNode();
     ast.LeftNode = leftNode;
     ast.RightNode = rightNode;
