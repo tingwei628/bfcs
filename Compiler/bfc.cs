@@ -126,6 +126,7 @@ public class Parser {
     if (_endIndex == -1)  return null;
     if (_isNextTokenEOF()) return null;
     
+    
     ASTNode leftNode = _instr();
     if (leftNode == null) return null;
 
@@ -145,15 +146,16 @@ public class Parser {
     if (token.IsScan == true) return null;
 
     if (isTerminals(token.Literal)){
-      token.IsScan = true;
+      //token.IsScan = true;
       return new ASTNode(token);
     }
     else if (token.Literal == '[') {
       int searchIndex_right = _currentIndex;
       int bracket_right = 1;
-      while(bracket_right > 0 && _endIndex >= searchIndex_right) {
+      while(bracket_right > 0) {
         if (_tokens[searchIndex_right] == ']') bracket_right--;
         else if (_tokens[searchIndex_right] == '[') bracket_right++;
+        if (_endIndex < searchIndex_right) break;
         searchIndex_right++;
       }
       if (bracket_right > 0 ) {
@@ -162,7 +164,8 @@ public class Parser {
       
       ASTNode ast = new ASTNode();
       ast.LeftNode = new ASTNode(token);
-      ast.MiddleNode = _program();
+      ASTNode middleNode = _program();
+      if (middleNode != null)  ast.MiddleNode = middleNode;
       ast.RightNode = new ASTNode(_tokens[searchIndex_right]);
       token.IsScan = true;
       _tokens[searchIndex_right].IsScan = true;
