@@ -121,12 +121,11 @@ public class Parser {
     return ast;
   }
   private ASTNode _program() {
-    ASTNode ast = new ASTNode();
     Token token = _getNextToken();
-    if (isTerminals(token.Literal)) {
-      ast.LeftNode = _instr();
-      ast.RightNode = _program();
-    }
+    if (token == null) return null;
+    ASTNode ast = new ASTNode();
+    ast.LeftNode = _instr();
+    ast.RightNode = _program();
     return ast;
   }
   private ASTNode _instr() {
