@@ -98,6 +98,7 @@ LL(1)
 */
 public class ASTNode {
   public ASTNode LeftNode { get; set; }
+  public ASTNode MiddleNode { get; set; }
   public ASTNode RightNode { get; set; }
   public char Value { get; }
   public ASTNode() {
@@ -112,38 +113,51 @@ public class Parser {
   private int _endIndex;
   public Parser(List<Token> tokens) {
     _tokens = tokens;
-    _currentTokenIndex = 0;
-    _endIndex = tokens.Length-1;
+    _currentIndex = 0;
+    _endIndex = tokens.Count-1;
   }
   public ASTNode ast() {
-    ASTNode empty_node_ast = new ASTNode();
-    ASTNode ast = _program(empty_node_ast);
+    ASTNode ast = _program();
     return ast;
   }
-  private ASTNode _program(ASTNode ast) {
+  private ASTNode _program() {
+    ASTNode ast = new ASTNode();
     Token token = _getNextToken();
     if (isTerminals(token.Literal)) {
       ast.LeftNode = _instr();
-      ASTNode empty_node_ast = new ASTNode();
-      ast.RightNode = _program(empty_node_ast);
+      ast.RightNode = _program();
     }
     return ast;
   }
   private ASTNode _instr() {
     Token token = _getNextToken();
-    if ((isTerminals(token.Literal)) {
-      return new ASTNode(token.Literal);
+    if (isTerminals(token.Literal)){
+      return new ASTNode(token);
     }
-    else if () {
+    else if (token.Literal == '[') {
+      ASTNode ast = new ASTNode();
+      ast.LeftNode = new ASTNode(token);
+      ast.MiddleNode = _program();
+      // ']' token
+      Token left_token = _getNextToken();
+      if (left_token.Literal == ']') {
+        ast.RightNode = new ASTNode(left_token);
+      }
+      else {
+         throw new Exception("no match ]");
+      }
+      return ast;
+    }
 
-    }
+    throw new Exception("unkown token or no match [");
+    return null;
   }
   private bool isTerminals(char literal) {
     return literal == '+' || literal == '-' || literal == '>' || literal == '<' || literal == ',' || literal == '.';
   }
   private Token _getNextToken() {
-    if (_endIndex < _currentTokenIndex) return null;
-    return _tokens[_currentTokenIndex++];  
+    if (_endIndex < _currentIndex) return null;
+    return _tokens[_currentIndex++];  
   }
 }
 public class SemanticAnalyzer {
