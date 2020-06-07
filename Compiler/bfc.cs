@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 /*
-
     Reading the source code file
     The Lexical Analyzer which translates the source file to a stream of tokens
     The Syntax Analyzer which builds an Abstract Syntax Tree (AST) from the stream of tokens and checks simple things like if loops match
@@ -12,18 +11,15 @@ using System.IO;
  
     https://cs.lmu.edu/~ray/notes/ohmexamples/
 
-   
     Lexer(token)
     Parser(syntax, AST, LL parser) ? Validate? [] should be in pair
     Semantic Analyzer (type checking, Label checking and Flow control checking.)
     Code generator (emit IL)
     Optimizer (JIT...)
 
-    Parser : https://www.cs.fsu.edu/~engelen/courses/COP402003/board.html#production
-    
+    Parser : https://www.cs.fsu.edu/~engelen/courses/COP402003/board.html#productio
     System.Reflection.Emit
     ILGenerator
-
 */
 public class BFC {
   public string[] _args { get; }
@@ -34,10 +30,8 @@ public class BFC {
     //if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
     //string bf_filepath = this._args[0];
     //string str = File.ReadAllText(bf_filepath);
-//string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.
-//";
-string str = @"[+]";
- 
+string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.
+"; 
     var tokens = new Lexer(str).lex();
     var ast = new Parser(tokens).ast();
   }
@@ -138,7 +132,6 @@ public class Parser {
   }
   private ASTNode _instr() {
     Token token = _getCurrentToken();
-    //Console.WriteLine("_instr token " + token.Literal + token._pos + token.IsLoopScan);
     if (token == null) return null;
     if (token.IsLoopScan == true) return null;
 
@@ -182,9 +175,7 @@ public class Parser {
   }
 }
 public class SemanticAnalyzer {
-
 }
-
 public class CodeGenerator {
   public string gen() {
     return null;
