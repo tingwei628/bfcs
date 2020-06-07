@@ -53,6 +53,7 @@ public class Token {
   public char Literal { get; }
   public Token_Enum TokenType { get; }
   public int _pos;
+  public bool IsScan { get; set; }
   public Token(char literal, Token_Enum token_Enum, int pos) {
     TokenType = token_Enum;
     Literal = literal;
@@ -114,49 +115,71 @@ public class Parser {
   public Parser(List<Token> tokens) {
     _tokens = tokens;
     _currentIndex = 0;
-    _endIndex = tokens.Count-1;
+    _endIndex = tokens.Count == 0 ? -1 : tokens.Count-1;
   }
   public ASTNode ast() {
     ASTNode ast = _program();
     return ast;
   }
+  // [+]
   private ASTNode _program() {
-    Token token = _getNextToken();
-    if (token == null) return null;
+    if (_endIndex == -1)  return null;
+    if (_isNextTokenEOF()) return null;
+    
+    ASTNode leftNode = _instr();
+    ASTNode rightNode = _program();
+    if (leftNode == null) return null;
+    if (rightNode == null) return leftNode;
     ASTNode ast = new ASTNode();
-    ast.LeftNode = _instr();
-    ast.RightNode = _program();
+    ast.LeftNode = leftNode;
+    ast.RightNode = rightNode;
+    
     return ast;
   }
   private ASTNode _instr() {
-    Token token = _getNextToken();
+    Token token = _getCurrentToken();
+    
+    if (token == null) return null;
+    if (token.IsScan == true) return null;
+
     if (isTerminals(token.Literal)){
+      token.IsScan = true;
       return new ASTNode(token);
     }
     else if (token.Literal == '[') {
+      int searchIndex_right = _currentIndex;
+      int bracket_right = 1;
+      while(bracket_right > 0 && _endIndex >= searchIndex_right) {
+        if (_tokens[searchIndex_right] == ']') bracket_right--;
+        else if (_tokens[searchIndex_right] == '[') bracket_right++;
+        searchIndex_right++;
+      }
+      if (bracket_right > 0 ) {
+        throw new Exception("no found ]");
+      }
+      
       ASTNode ast = new ASTNode();
       ast.LeftNode = new ASTNode(token);
       ast.MiddleNode = _program();
-      // ']' token
-      Token left_token = _getNextToken();
-      if (left_token.Literal == ']') {
-        ast.RightNode = new ASTNode(left_token);
-      }
-      else {
-         throw new Exception("no match ]");
-      }
+      ast.RightNode = new ASTNode(_tokens[searchIndex_right]);
+      token.IsScan = true;
+      _tokens[searchIndex_right].IsScan = true;
+
       return ast;
     }
-
-    throw new Exception("unkown token or no match [");
+    //extra ]
+    throw new Exception("unkown error");
     return null;
   }
   private bool isTerminals(char literal) {
     return literal == '+' || literal == '-' || literal == '>' || literal == '<' || literal == ',' || literal == '.';
   }
-  private Token _getNextToken() {
+  private Token _getCurrentToken() {
     if (_endIndex < _currentIndex) return null;
-    return _tokens[_currentIndex++];  
+    return _tokens[_currentIndex++];
+  }
+  private bool _isNextTokenEOF () {
+    return _endIndex < _currentIndex;
   }
 }
 public class SemanticAnalyzer {
