@@ -28,12 +28,10 @@ public class BFC {
     this._args = args;
   }
   public void compile() {
-    //if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
-    //string bf_filepath = this._args[0];
-    //string str = File.ReadAllText(bf_filepath);
-//string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.
-//";
-string str ="[+++]"; 
+    if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
+    string bf_filepath = this._args[0];
+    string str = File.ReadAllText(bf_filepath);
+    //string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
     var tokens = new Lexer(str).lex();
     var ast = new Parser(tokens).ast();
     var visitor = new ASTVisitor(ast);
