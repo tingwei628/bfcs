@@ -149,12 +149,12 @@ public class Parser {
       //token.IsScan = true;
       return new ASTNode(token);
     }
-    else if (token.Literal == '[') {
+    else if (token.TokenType == Token_Enum.BeginLoop) {
       int searchIndex_right = _currentIndex;
       int bracket_right = 1;
       while(bracket_right > 0) {
-        if (_tokens[searchIndex_right] == ']') bracket_right--;
-        else if (_tokens[searchIndex_right] == '[') bracket_right++;
+        if (_tokens[searchIndex_right].TokenType == Token_Enum.EndLoop) bracket_right--;
+        else if (_tokens[searchIndex_right].TokenType == Token_Enum.BeginLoop) bracket_right++;
         if (_endIndex < searchIndex_right) break;
         searchIndex_right++;
       }
