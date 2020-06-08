@@ -3,15 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 /*
-    Reading the source code file
-    The Lexical Analyzer which translates the source file to a stream of tokens
-    The Syntax Analyzer which builds an Abstract Syntax Tree (AST) from the stream of tokens and checks simple things like if loops match
-    The Intermediate Code Generator which takes the Source AST and transforms it into an Intermediate AST
-    The Target Code Generator which takes the Intermediate AST and transforms it into a Target AST
-    The Target Code Writer which takes the Target AST and writes actual x86 Assembly code as output.
  
     https://cs.lmu.edu/~ray/notes/ohmexamples/
-
+    
     Lexer(token)
     Parser(syntax, AST, LL parser) ? Validate? [] should be in pair
     Semantic Analyzer (type checking, Label checking and Flow control checking.)
@@ -19,8 +13,6 @@ using System.Text;
     Optimizer (JIT...)
 
     Parser : https://www.cs.fsu.edu/~engelen/courses/COP402003/board.html#productio
-    ref: https://ruslanspivak.com/lsbasi-part7/
-
     System.Reflection.Emit
     ILGenerator
 */
@@ -30,14 +22,15 @@ public class BFC {
     this._args = args;
   }
   public void compile() {
-    if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
-    string bf_filepath = this._args[0];
-    string str = File.ReadAllText(bf_filepath);
-    //string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
+    //if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
+    //string bf_filepath = this._args[0];
+    //string str = File.ReadAllText(bf_filepath);
+    string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
     var tokens = new Lexer(str).lex();
     var ast = new Parser(tokens).ast();
-    var visitor = new ASTVisitor(ast);
-    visitor.print();
+    var code = new CodeGenerator(ast).gen();
+    //var visitor = new ASTVisitor(ast);
+    //visitor.print();
   }
 }
 
@@ -196,9 +189,12 @@ public class ASTVisitor {
     walk(node.RightNode, layer+1);
   } 
 }
-public class SemanticAnalyzer {
-}
+//public class SemanticAnalyzer {}
 public class CodeGenerator {
+  public ASTNode _ast { get; }
+  public CodeGenerator(ASTNode ast) {
+    _ast = ast;
+  }
   public string gen() {
     return null;
   }
