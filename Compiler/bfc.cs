@@ -210,19 +210,35 @@ public class CodeGenerator {
     ab.SetEntryPoint(metb);
 
     ILGenerator il = metb.GetILGenerator();
+    // setup
+    il.DeclareLocal(typeof(byte[]));
+    il.DeclareLocal(typeof(int));
+     // byte[3000]
+    il.Emit(OpCodes.Ldc_I4, 3000);
+    il.Emit(OpCodes.Newarr, typeof(byte));
+    il.Emit(OpCodes.Stloc_0);
+    // int ptr = 0
+    il.Emit(OpCodes.Ldc_I4_0);
+    il.Emit(OpCodes.Stloc_1);
+
+    walk(il, _ast, 0);
+
+
+
     il.Emit(OpCodes.Ret);
     tb.CreateType();
     ab.Save("bfAsm.exe");
   }
-  public void print() {
-    walk(_ast, 0);
-  }
 
-  private void walk(ASTNode node, int layer) {
+  private void walk(ILGenerator il, ASTNode node, int layer) {
     if (node == null) return;
-    if (node.Value != '\0') Console.WriteLine(new string(' ', layer) + node.Value);
-    walk(node.LeftNode, layer+1);
-    walk(node.MiddleNode, layer+1);
-    walk(node.RightNode, layer+1);
+    //if (node.Value != '\0') Console.WriteLine(new string(' ', layer) + node.Value);
+    if (nodke.Value != '\0') {
+
+
+    }
+    walk(il, node.LeftNode, layer+1);
+    walk(il, node.MiddleNode, layer+1);
+    walk(il, node.RightNode, layer+1);
   } 
 }
