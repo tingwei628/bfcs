@@ -27,13 +27,13 @@ public class BFC {
     //if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
     //string bf_filepath = this._args[0];
     //string str = File.ReadAllText(bf_filepath);
-    string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
-    //string str = @"[+++++++++++++-]";
+    //string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
+    string str = @"[+++++++++++++-]";
     var tokens = new Lexer(str).lex();
     var ast = new Parser(tokens).ast();
-    new CodeGenerator(ast).gen();
-    //var visitor = new ASTVisitor(ast);
-    //visitor.print();
+    //new CodeGenerator(ast).gen();
+    var visitor = new ASTVisitor(ast);
+    visitor.print();
   }
 }
 
@@ -280,33 +280,16 @@ public class CodeGenerator {
       il.Emit(OpCodes.Stloc_1);
   }
           
-  private void emit_loop_head(ILGenerator il)
-  {
-
-      Label headLbl = il.DefineLabel();
-      _headLabels.Push(headLbl);
-
-      il.MarkLabel(headLbl);
-
-      push_locals(il);
-      il.Emit(OpCodes.Ldelem_U1);
-      il.Emit(OpCodes.Ldc_I4_0);
-      il.Emit(OpCodes.Ceq);
-
-      _endLabels.Push(il.DefineLabel());
-      il.Emit(OpCodes.Brtrue, _endLabels.Peek());
-  }
-
   private void walk(ILGenerator il, ASTNode node, int layer) {
     if (node == null) return;
     //if (node.Value != '\0') Console.WriteLine(new string(' ', layer) + node.Value);
     if (node.Value != '\0') {
       switch(node.TokenType)
       {
-        case Token_Enum.BeginLoop:
-          break;
-        case Token_Enum.EndLoop:
-          break;
+        //case Token_Enum.BeginLoop:
+        //  break;
+        //case Token_Enum.EndLoop:
+        //  break;
         case Token_Enum.Output:
           break;
         case Token_Enum.Input:
@@ -318,15 +301,31 @@ public class CodeGenerator {
           emit_cell_decrement(il);
           break;
         case Token_Enum.MoveLeft:
-          emit_ptr_decrement(il)
+          emit_ptr_decrement(il);
           break;
         case Token_Enum.MoveRight:
           emit_ptr_increment(il);
           break;
       }
     }
+    Label headLabel = default(Label);
+    Label endLabel = default(Label);
+    if (node.LeftNode.TokenType == Token_Enum.BeginLoop) {
+      headLabel = il.DefineLabel();
+      il.MarkLabel(headLabel);
+      push_locals(il);
+      il.Emit(OpCodes.Ldelem_U1);
+      il.Emit(OpCodes.Ldc_I4_0);
+      il.Emit(OpCodes.Ceq);
+      endLabel = il.DefineLabel();
+      il.Emit(OpCodes.Brtrue, endLabel);
+    }
     walk(il, node.LeftNode, layer+1);
     walk(il, node.MiddleNode, layer+1);
+    if (node.RightNode.TokenType == Token_Enum.EndLoop) {
+      il.Emit(OpCodes.Br, headLabel);
+      il.MarkLabel(endLabel);
+    }
     walk(il, node.RightNode, layer+1);
   } 
 }
