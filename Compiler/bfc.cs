@@ -27,13 +27,16 @@ public class BFC {
     //if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
     //string bf_filepath = this._args[0];
     //string str = File.ReadAllText(bf_filepath);
-    string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
-    //string str = @"[+++++++++++++-]";
+    //string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
+    string str = @"[[++[++++[+++++++-[++++][]]]]]";
     var tokens = new Lexer(str).lex();
     var ast = new Parser(tokens).ast();
+    
+    var visitor = new ASTVisitor(ast);
+    visitor.print();
+
+
     new CodeGenerator(ast).gen();
-    //var visitor = new ASTVisitor(ast);
-    //visitor.print();
   }
 }
 
@@ -188,7 +191,7 @@ public class ASTVisitor {
   }
   private void walk(ASTNode node, int layer) {
     if (node == null) return;
-    if (node.Value != '\0') Console.WriteLine(new string(' ', layer) + node.Value);
+    if (node.Value != '\0') Console.WriteLine(layer + new string(' ', layer) + node.Value);
     walk(node.LeftNode, layer+1);
     walk(node.MiddleNode, layer+1);
     walk(node.RightNode, layer+1);
