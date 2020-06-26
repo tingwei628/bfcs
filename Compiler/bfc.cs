@@ -232,6 +232,40 @@ public class CodeGenerator {
     ab.Save("bfAsm.exe");
   }
 
+  private void push_locals(ILGenerator il)
+  {
+    il.Emit(OpCodes.Ldloc_0);
+    il.Emit(OpCodes.Ldloc_1);
+  }
+
+  private void emit_load_memory(ILGenerator il)
+  {
+      push_locals(il);
+      il.Emit(OpCodes.Ldelema, typeof(byte));
+      il.Emit(OpCodes.Dup);
+      il.Emit(OpCodes.Ldobj, typeof(byte));
+  }
+  private void emit_save_memory(ILGenerator il)
+  {
+      il.Emit(OpCodes.Stobj, typeof(byte));
+  }
+  private void emit_cell_increment(ILGenerator il)
+  {
+      //++memory[ptr];
+      emit_load_memory(il);
+      il.Emit(OpCodes.Add);
+      il.Emit(OpCodes.Conv_U1);
+      emit_save_memory(il);
+  }
+  private void emit_cell_decrement(ILGenerator il)
+  {
+      //--memory[ptr];
+      emit_load_memory(il);
+      il.Emit(OpCodes.Sub);
+      il.Emit(OpCodes.Conv_U1);
+      emit_save_memory(il);
+  }
+
   private void walk(ILGenerator il, ASTNode node, int layer) {
     if (node == null) return;
     //if (node.Value != '\0') Console.WriteLine(new string(' ', layer) + node.Value);
@@ -247,8 +281,10 @@ public class CodeGenerator {
         case Token_Enum.Input:
           break;
         case Token_Enum.Increment:
+          emit_cell_increment(il);
           break;
         case Token_Enum.Decrement:
+          emit_cell_decrement(il);
           break;
         case Token_Enum.MoveLeft:
           break;
