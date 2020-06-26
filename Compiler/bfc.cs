@@ -228,6 +228,10 @@ public class CodeGenerator {
     tb.CreateType();
     ab.Save("bfAsm.exe");
   }
+  private static MethodInfo writeMethod;
+  private static Type[] writeMethodParameters;
+  private static MethodInfo readMethod;
+  private static readonly Type[] readMethodParameters = null;
 
   private void push_locals(ILGenerator il)
   {
@@ -278,13 +282,27 @@ public class CodeGenerator {
   }
   private void emit_console_write(ILGenerator il)
   {
+      writeMethod = writeMethod ?? typeof(Console).GetMethod("Write", new[] { typeof(char) });
+      writeMethodParameters = writeMethodParameters ?? new[] { typeof(char) };
+
       //Console.Write((char)memory[ptr]);
       il.Emit(OpCodes.Ldloc_0);
       il.Emit(OpCodes.Ldloc_1);
       il.Emit(OpCodes.Ldelem_U1);
-      il.EmitCall(OpCodes.Call, _writeMethod, _writeMethodParameters);
+      il.EmitCall(OpCodes.Call, writeMethod, writeMethodParameters);
   }
-          
+  private void emit_console_read(ILGenerator il)
+  {
+      readMethod = readMethod ?? typeof(Console).GetMethod("Read");
+      //memory[ptr] = (byte)(Console.Read() & 0xFF);
+      il.Emit(OpCodes.Ldloc_0);
+      il.Emit(OpCodes.Ldloc_1);
+      il.EmitCall(OpCodes.Call, readMethod, readMethodParameters);
+      il.Emit(OpCodes.Ldc_I4, 0xFF);
+      il.Emit(OpCodes.And);
+      il.Emit(OpCodes.Conv_U1);
+      il.Emit(OpCodes.Stelem_I1);
+  }       
   private void walk(ILGenerator il, ASTNode node, int layer) {
     if (node == null) return;
     //if (node.Value != '\0') Console.WriteLine(new string(' ', layer) + node.Value);
@@ -299,6 +317,7 @@ public class CodeGenerator {
           emit_console_write(il);
           break;
         case Token_Enum.Input:
+          emit_console_read(il);
           break;
         case Token_Enum.Increment:
           emit_cell_increment(il);
