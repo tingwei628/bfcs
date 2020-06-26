@@ -95,10 +95,12 @@ public class ASTNode {
   public ASTNode MiddleNode { get; set; }
   public ASTNode RightNode { get; set; }
   public char Value { get; }
+  public Token_Enum TokenType { get; }
   public ASTNode() {
   }
   public ASTNode(Token token) {
     Value = token.Literal;
+    TokenType = token.TokenType;
   }
 }
 public class Parser {
@@ -233,9 +235,26 @@ public class CodeGenerator {
   private void walk(ILGenerator il, ASTNode node, int layer) {
     if (node == null) return;
     //if (node.Value != '\0') Console.WriteLine(new string(' ', layer) + node.Value);
-    if (nodke.Value != '\0') {
-
-
+    if (node.Value != '\0') {
+      switch(node.TokenType)
+      {
+        case Token_Enum.BeginLoop:
+          break;
+        case Token_Enum.EndLoop:
+          break;
+        case Token_Enum.Output:
+          break;
+        case Token_Enum.Input:
+          break;
+        case Token_Enum.Increment:
+          break;
+        case Token_Enum.Decrement:
+          break;
+        case Token_Enum.MoveLeft:
+          break;
+        case Token_Enum.MoveRight:
+          break;
+      }
     }
     walk(il, node.LeftNode, layer+1);
     walk(il, node.MiddleNode, layer+1);
