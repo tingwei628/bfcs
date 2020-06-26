@@ -335,7 +335,7 @@ public class CodeGenerator {
     }
     Label headLabel = default(Label);
     Label endLabel = default(Label);
-    if (node.LeftNode.TokenType == Token_Enum.BeginLoop) {
+    if (node.LeftNode != null && node.LeftNode.TokenType == Token_Enum.BeginLoop) {
       headLabel = il.DefineLabel();
       il.MarkLabel(headLabel);
       push_locals(il);
@@ -349,7 +349,7 @@ public class CodeGenerator {
     
     walk(il, node.MiddleNode, layer+1);
 
-    if (node.RightNode.TokenType == Token_Enum.EndLoop) {
+    if (node.RightNode != null && node.RightNode.TokenType == Token_Enum.EndLoop) {
       il.Emit(OpCodes.Br, headLabel);
       il.MarkLabel(endLabel);
     }
