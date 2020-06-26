@@ -265,6 +265,37 @@ public class CodeGenerator {
       il.Emit(OpCodes.Conv_U1);
       emit_save_memory(il);
   }
+  private void emit_ptr_increment(ILGenerator il)
+  {
+      //++ptr;
+      il.Emit(OpCodes.Ldloc_1);
+      il.Emit(OpCodes.Add);
+      il.Emit(OpCodes.Stloc_1);
+  }
+  private void emit_ptr_decrement(ILGenerator il)
+  {
+      //--ptr;
+      il.Emit(OpCodes.Ldloc_1);
+      il.Emit(OpCodes.Sub);
+      il.Emit(OpCodes.Stloc_1);
+  }
+          
+  private void emit_loop_head(ILGenerator il)
+  {
+
+      Label headLbl = il.DefineLabel();
+      _headLabels.Push(headLbl);
+
+      il.MarkLabel(headLbl);
+
+      push_locals(il);
+      il.Emit(OpCodes.Ldelem_U1);
+      il.Emit(OpCodes.Ldc_I4_0);
+      il.Emit(OpCodes.Ceq);
+
+      _endLabels.Push(il.DefineLabel());
+      il.Emit(OpCodes.Brtrue, _endLabels.Peek());
+  }
 
   private void walk(ILGenerator il, ASTNode node, int layer) {
     if (node == null) return;
@@ -287,8 +318,10 @@ public class CodeGenerator {
           emit_cell_decrement(il);
           break;
         case Token_Enum.MoveLeft:
+          emit_ptr_decrement(il)
           break;
         case Token_Enum.MoveRight:
+          emit_ptr_increment(il);
           break;
       }
     }
