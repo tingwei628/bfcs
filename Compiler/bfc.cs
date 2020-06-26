@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Reflection;
+using System.Reflection.Emit;
 /*
  
     https://cs.lmu.edu/~ray/notes/ohmexamples/
@@ -26,9 +28,10 @@ public class BFC {
     //string bf_filepath = this._args[0];
     //string str = File.ReadAllText(bf_filepath);
     string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
+    //string str = @"[+++++++++++++-]";
     var tokens = new Lexer(str).lex();
     var ast = new Parser(tokens).ast();
-    var code = new CodeGenerator(ast).gen();
+    new CodeGenerator(ast).gen();
     //var visitor = new ASTVisitor(ast);
     //visitor.print();
   }
@@ -79,7 +82,7 @@ public class Lexer {
       }
       i++;
     }
-    return tokens;
+    return tokens;  
   }
 }
 /*
@@ -195,7 +198,31 @@ public class CodeGenerator {
   public CodeGenerator(ASTNode ast) {
     _ast = ast;
   }
-  public string gen() {
-    return null;
+  public void gen() {
+    AppDomain ad = AppDomain.CurrentDomain;
+    AssemblyName am = new AssemblyName();
+    am.Name = "bfAsm";
+    AssemblyBuilder ab = ad.DefineDynamicAssembly(am, AssemblyBuilderAccess.Save);
+    ModuleBuilder mb = ab.DefineDynamicModule("bfMod", "bfAsm.exe");
+    TypeBuilder tb = mb.DefineType("bfType", TypeAttributes.Public);
+    MethodBuilder metb = tb.DefineMethod("codeGen", MethodAttributes.Public |
+    MethodAttributes.Static, null, null);
+    ab.SetEntryPoint(metb);
+
+    ILGenerator il = metb.GetILGenerator();
+    il.Emit(OpCodes.Ret);
+    tb.CreateType();
+    ab.Save("bfAsm.exe");
   }
+  public void print() {
+    walk(_ast, 0);
+  }
+
+  private void walk(ASTNode node, int layer) {
+    if (node == null) return;
+    if (node.Value != '\0') Console.WriteLine(new string(' ', layer) + node.Value);
+    walk(node.LeftNode, layer+1);
+    walk(node.MiddleNode, layer+1);
+    walk(node.RightNode, layer+1);
+  } 
 }
