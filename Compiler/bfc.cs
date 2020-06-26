@@ -222,8 +222,9 @@ public class CodeGenerator {
     // int ptr = 0
     il.Emit(OpCodes.Ldc_I4_0);
     il.Emit(OpCodes.Stloc_1);
-
+    
     walk(il, _ast, 0);
+
     il.Emit(OpCodes.Ret);
     tb.CreateType();
     ab.Save("bfAsm.exe");
@@ -331,6 +332,7 @@ public class CodeGenerator {
         case Token_Enum.MoveRight:
           emit_ptr_increment(il);
           break;
+        default: break;
       }
     }
     Label headLabel = default(Label);
