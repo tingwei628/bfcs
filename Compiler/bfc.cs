@@ -27,13 +27,13 @@ public class BFC {
     //if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
     //string bf_filepath = this._args[0];
     //string str = File.ReadAllText(bf_filepath);
-    //string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
-    string str = @"[+++++++++++++-]";
+    string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
+    //string str = @"[+++++++++++++-]";
     var tokens = new Lexer(str).lex();
     var ast = new Parser(tokens).ast();
-    //new CodeGenerator(ast).gen();
-    var visitor = new ASTVisitor(ast);
-    visitor.print();
+    new CodeGenerator(ast).gen();
+    //var visitor = new ASTVisitor(ast);
+    //visitor.print();
   }
 }
 
@@ -224,9 +224,6 @@ public class CodeGenerator {
     il.Emit(OpCodes.Stloc_1);
 
     walk(il, _ast, 0);
-
-
-
     il.Emit(OpCodes.Ret);
     tb.CreateType();
     ab.Save("bfAsm.exe");
@@ -279,6 +276,14 @@ public class CodeGenerator {
       il.Emit(OpCodes.Sub);
       il.Emit(OpCodes.Stloc_1);
   }
+  private void emit_console_write(ILGenerator il)
+  {
+      //Console.Write((char)memory[ptr]);
+      il.Emit(OpCodes.Ldloc_0);
+      il.Emit(OpCodes.Ldloc_1);
+      il.Emit(OpCodes.Ldelem_U1);
+      il.EmitCall(OpCodes.Call, _writeMethod, _writeMethodParameters);
+  }
           
   private void walk(ILGenerator il, ASTNode node, int layer) {
     if (node == null) return;
@@ -291,6 +296,7 @@ public class CodeGenerator {
         //case Token_Enum.EndLoop:
         //  break;
         case Token_Enum.Output:
+          emit_console_write(il);
           break;
         case Token_Enum.Input:
           break;
@@ -321,7 +327,9 @@ public class CodeGenerator {
       il.Emit(OpCodes.Brtrue, endLabel);
     }
     walk(il, node.LeftNode, layer+1);
+    
     walk(il, node.MiddleNode, layer+1);
+
     if (node.RightNode.TokenType == Token_Enum.EndLoop) {
       il.Emit(OpCodes.Br, headLabel);
       il.MarkLabel(endLabel);
