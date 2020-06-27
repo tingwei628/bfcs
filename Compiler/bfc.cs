@@ -5,17 +5,8 @@ using System.Text;
 using System.Reflection;
 using System.Reflection.Emit;
 /*
- 
     https://cs.lmu.edu/~ray/notes/ohmexamples/
-    
-    Lexer(token)
-    Parser(syntax, AST, LL parser) ? Validate? [] should be in pair
-    Semantic Analyzer (type checking, Label checking and Flow control checking.)
-    Code generator (emit IL)
-    Optimizer (JIT...)
     Parser : https://www.cs.fsu.edu/~engelen/courses/COP402003/board.html#productio
-    System.Reflection.Emit
-    ILGenerator
 */
 public class BFC {
   public string[] _args { get; }
@@ -23,17 +14,14 @@ public class BFC {
     this._args = args;
   }
   public void compile() {
-    //if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
-    //string bf_filepath = this._args[0];
-    //string str = File.ReadAllText(bf_filepath);
-    string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
+    if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
+    string bf_filepath = this._args[0];
+    string str = File.ReadAllText(bf_filepath);
+    //string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
     var tokens = new Lexer(str).lex();
     var ast = new Parser(tokens).ast();
-    
     //var visitor = new ASTVisitor(ast);
     //visitor.print();
-
-
     new CodeGenerator(ast).gen();
   }
 }
@@ -202,17 +190,6 @@ public class CodeGenerator {
   public CodeGenerator(ASTNode ast) {
     _ast = ast;
   }
-
-  /*
-  Unhandled Exception:
-System.InvalidProgramException: 
-Invalid IL code in bfType:codeGen (): IL_001c: stobj     0x01000001
-
-
-[ERROR] FATAL UNHANDLED EXCEPTION: 
-System.InvalidProgramException: 
-Invalid IL code in bfType:codeGen (): IL_001c: stobj     0x01000001
-  */
   public void gen() {
     AppDomain ad = AppDomain.CurrentDomain;
     AssemblyName am = new AssemblyName();
