@@ -27,13 +27,12 @@ public class BFC {
     //if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
     //string bf_filepath = this._args[0];
     //string str = File.ReadAllText(bf_filepath);
-    //string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
-    string str = @"[[++[++++[+++++++-[++++][]]]]]";
+    string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
     var tokens = new Lexer(str).lex();
     var ast = new Parser(tokens).ast();
     
-    var visitor = new ASTVisitor(ast);
-    visitor.print();
+    //var visitor = new ASTVisitor(ast);
+    //visitor.print();
 
 
     new CodeGenerator(ast).gen();
@@ -41,6 +40,7 @@ public class BFC {
 }
 
 public enum Token_Enum {
+  None,  /*  default must be added*/
   BeginLoop,/* [ */
   EndLoop, /* ]*/
   Input, /* , */
