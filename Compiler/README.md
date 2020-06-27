@@ -25,7 +25,14 @@ mono main.exe ./test.bf
 
 ```
 
-execute bfAsm.exe
+execute bfAsm.exe to see bf result
 ```
 mono bfAsm.exe
 ```
+
+view cil code
+```
+monodis bfAsm.exe
+```
+
+
