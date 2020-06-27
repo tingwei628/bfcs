@@ -19,8 +19,13 @@ mcs -out:main.exe bfc.cs main.cs
 
 ```
 
-compile test.bf to CIL
+compile with test.bf to generate cil code (bfAsm.exe) 
 ```
 mono main.exe ./test.bf
 
+```
+
+execute bfAsm.exe
+```
+mono bfAsm.exe
 ```
