@@ -35,4 +35,4 @@ view cil code
 monodis bfAsm.exe
 ```
 
-
+Credits in code generation: [Brainfuck.NET @nikeee](https://github.com/nikeee/Brainfuck.NET)
