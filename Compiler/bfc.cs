@@ -13,7 +13,6 @@ using System.Reflection.Emit;
     Semantic Analyzer (type checking, Label checking and Flow control checking.)
     Code generator (emit IL)
     Optimizer (JIT...)
-
     Parser : https://www.cs.fsu.edu/~engelen/courses/COP402003/board.html#productio
     System.Reflection.Emit
     ILGenerator
@@ -203,6 +202,17 @@ public class CodeGenerator {
   public CodeGenerator(ASTNode ast) {
     _ast = ast;
   }
+
+  /*
+  Unhandled Exception:
+System.InvalidProgramException: 
+Invalid IL code in bfType:codeGen (): IL_001c: stobj     0x01000001
+
+
+[ERROR] FATAL UNHANDLED EXCEPTION: 
+System.InvalidProgramException: 
+Invalid IL code in bfType:codeGen (): IL_001c: stobj     0x01000001
+  */
   public void gen() {
     AppDomain ad = AppDomain.CurrentDomain;
     AssemblyName am = new AssemblyName();
@@ -258,6 +268,7 @@ public class CodeGenerator {
   {
       //++memory[ptr];
       emit_load_memory(il);
+      il.Emit(OpCodes.Ldc_I4_1);
       il.Emit(OpCodes.Add);
       il.Emit(OpCodes.Conv_U1);
       emit_save_memory(il);
@@ -266,6 +277,7 @@ public class CodeGenerator {
   {
       //--memory[ptr];
       emit_load_memory(il);
+      il.Emit(OpCodes.Ldc_I4_1);
       il.Emit(OpCodes.Sub);
       il.Emit(OpCodes.Conv_U1);
       emit_save_memory(il);
@@ -274,6 +286,7 @@ public class CodeGenerator {
   {
       //++ptr;
       il.Emit(OpCodes.Ldloc_1);
+      il.Emit(OpCodes.Ldc_I4_1);
       il.Emit(OpCodes.Add);
       il.Emit(OpCodes.Stloc_1);
   }
@@ -281,6 +294,7 @@ public class CodeGenerator {
   {
       //--ptr;
       il.Emit(OpCodes.Ldloc_1);
+      il.Emit(OpCodes.Ldc_I4_1);
       il.Emit(OpCodes.Sub);
       il.Emit(OpCodes.Stloc_1);
   }
