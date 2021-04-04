@@ -15,13 +15,13 @@ Target: CIL
 
 compile bfc.cs
 ```
-mcs -out:main.exe bfc.cs main.cs
+mcs -out:bfc bfc.cs main.cs
 
 ```
 
 compile with test.bf to generate cil code (bfAsm.exe) 
 ```
-mono main.exe ./test.bf
+mono bfc ./test.bf
 
 ```
 
