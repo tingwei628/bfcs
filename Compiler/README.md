@@ -18,6 +18,9 @@ compile bfc.cs
 mcs -out:bfc bfc.cs main.cs
 
 ```
+> OSX
+> csc -out:bfc bfc.cs main.cs
+
 
 compile with test.bf to generate cil code (bfAsm.exe) 
 ```
