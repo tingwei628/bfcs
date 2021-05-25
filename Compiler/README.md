@@ -24,7 +24,7 @@ mcs -out:bfc bfc.cs main.cs
 
 compile with test.bf to generate cil code (bfAsm.exe) 
 ```
-mono bfc ./test.bf
+mono bfc ./test/test.bf
 
 ```
 
