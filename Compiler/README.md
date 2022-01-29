@@ -5,7 +5,6 @@ Target: CIL
 
 - Lexer(token)
 - Parser(syntax, AST)
-- ~~Semantic Analyzer (type checking, Label checking and Flow control checking.)~~
 - Code generator (emit IL)
 - Optimizer
 
@@ -13,24 +12,14 @@ Target: CIL
 
 ### Repl.it
 
-compile bfc.cs
+compile with hello_world.bf to generate cil code (bfAsm.exe) 
 ```
-mcs -out:bfc bfc.cs main.cs
-
-```
-> OSX
-> csc -out:bfc bfc.cs main.cs
-
-
-compile with test.bf to generate cil code (bfAsm.exe) 
-```
-mono bfc ./test/test.bf
-
+make compile bf=hello_world.bf
 ```
 
 execute bfAsm.exe to see bf result
 ```
-mono bfAsm.exe
+make run
 ```
 
 view cil code
