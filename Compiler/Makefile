@@ -2,8 +2,10 @@ CS_COMPILER=mcs
 CLR_RUNTIME=mono
 EXE=bfAsm.exe
 
+# bf=./test/hello_world.bf
+# make compile bf=./test/hello_world.bf
 compile: bfc
-	$(CLR_RUNTIME)  $< ./test/hello_world.bf
+	$(CLR_RUNTIME) $< $(bf)
 bfc: bfc.cs main.cs
 	$(CS_COMPILER) -out:$@ $^
 
