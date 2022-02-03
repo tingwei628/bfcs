@@ -1,15 +1,19 @@
-CS_COMPILER=mcs
+# CS_COMPILER=mcs
+CS_COMPILER=csc
 CLR_RUNTIME=mono
-EXE=bfAsm.exe
+EXE=BFC
+OS=osx-x64
 
 # make compile bf=./test/hello_world.bf
-compile: bfc
-	$(CLR_RUNTIME) $< $(bf)
-bfc: bfc.cs main.cs
-	$(CS_COMPILER) -out:$@ $^
+# compile: bfc
+# 	$(CLR_RUNTIME) $< $(bf)
+# bfc: bfc.cs Program.cs
+# 	$(CS_COMPILER) -out:$@ $^
 
-.PHONY: run clean
+.PHONY: run clean release
 run:
 	$(CLR_RUNTIME) $(EXE)
 clean: 
-	rm -f bfc $(EXE)
+	rm -rf bfc $(EXE) bin/ obj/
+release:
+	dotnet publish -c Release -r $(OS)

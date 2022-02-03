@@ -8,9 +8,9 @@ using System.Reflection.Emit;
     https://cs.lmu.edu/~ray/notes/ohmexamples/
     Parser : https://www.cs.fsu.edu/~engelen/courses/COP402003/board.html#productio
 */
-public class BFC {
+public class BrainFuckCompiler {
   public string[] _args { get; }
-  public BFC(string[] args) {
+  public BrainFuckCompiler(string[] args) {
     this._args = args;
   }
   public void compile() {
@@ -191,15 +191,17 @@ public class CodeGenerator {
     _ast = ast;
   }
   public void gen() {
-    AppDomain ad = AppDomain.CurrentDomain;
-    AssemblyName am = new AssemblyName();
-    am.Name = "bfAsm";
-    AssemblyBuilder ab = ad.DefineDynamicAssembly(am, AssemblyBuilderAccess.Save);
-    ModuleBuilder mb = ab.DefineDynamicModule("bfMod", "bfAsm.exe");
-    TypeBuilder tb = mb.DefineType("bfType", TypeAttributes.Public);
-    MethodBuilder metb = tb.DefineMethod("codeGen", MethodAttributes.Public |
+    //AppDomain ad = AppDomain.CurrentDomain;
+    AssemblyName am = new AssemblyName("bfc");
+    //am.Name = "bfAsm";
+    //AssemblyBuilder ab = ad.DefineDynamicAssembly(am, AssemblyBuilderAccess.Save);
+    AssemblyBuilder ab = AssemblyBuilder.DefineDynamicAssembly(am, AssemblyBuilderAccess.Run);
+    //ModuleBuilder mb = ab.DefineDynamicModule("bfMod", "bfAsm.exe");
+    ModuleBuilder mb = ab.DefineDynamicModule(am.Name);
+    TypeBuilder tb = mb.DefineType("bfcType", TypeAttributes.Public);
+    MethodBuilder metb = tb.DefineMethod("bfcCodegen", MethodAttributes.Public |
     MethodAttributes.Static, null, null);
-    ab.SetEntryPoint(metb);
+    //ab.SetEntryPoint(metb);
 
     ILGenerator il = metb.GetILGenerator();
     // setup
@@ -216,8 +218,15 @@ public class CodeGenerator {
     walk(il, _ast, 0);
 
     il.Emit(OpCodes.Ret);
-    tb.CreateType();
-    ab.Save("bfAsm.exe");
+    Type bfcType = tb.CreateType();
+    //ab.Save("bfAsm.exe");
+
+    //codegen start
+    MethodInfo mi = bfcType.GetMethod("bfcCodegen");
+    mi.Invoke(null, null);
+    
+    //execute without saving into IL file in .net core
+
   }
   private static MethodInfo writeMethod;
   private static Type[] writeMethodParameters;
