@@ -2,7 +2,8 @@
 CS_COMPILER=csc
 CLR_RUNTIME=mono
 EXE=BFC
-OS=osx-x64
+OS_RUNTIME=osx-x64
+PUBLISH_DIR=./release
 
 # make compile bf=./test/hello_world.bf
 # compile: bfc
@@ -14,6 +15,6 @@ OS=osx-x64
 run:
 	$(CLR_RUNTIME) $(EXE)
 clean: 
-	rm -rf bfc $(EXE) bin/ obj/
+	rm -rf bin/ obj/ release/
 release:
-	dotnet publish -c Release -r $(OS)
+	dotnet publish -c Release -r $(OS_RUNTIME) -o $(PUBLISH_DIR)

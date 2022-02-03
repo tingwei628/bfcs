@@ -4,10 +4,7 @@ using System.IO;
 using System.Text;
 using System.Reflection;
 using System.Reflection.Emit;
-/*
-    https://cs.lmu.edu/~ray/notes/ohmexamples/
-    Parser : https://www.cs.fsu.edu/~engelen/courses/COP402003/board.html#productio
-*/
+
 public class BrainFuckCompiler {
   public string[] _args { get; }
   public BrainFuckCompiler(string[] args) {
@@ -38,13 +35,13 @@ public enum Token_Enum {
   MoveRight, /*>*/
 }
 public class Token {
-  public char Literal { get; }
+  //public char Literal { get; }
   public Token_Enum TokenType { get; }
   public int _pos;
   public bool IsLoopScan { get; set; }
-  public Token(char literal, Token_Enum token_Enum, int pos) {
+  public Token(Token_Enum token_Enum, int pos) {
     TokenType = token_Enum;
-    Literal = literal;
+    //Literal = literal;
     _pos = pos;
   }
 }
@@ -60,14 +57,14 @@ public class Lexer {
     int j = 0;
     while(i < len) {
       switch(this._str[i]) {
-        case '[': this.tokens.Add(new Token('[', Token_Enum.BeginLoop, j)); j++; break;
-        case ']': this.tokens.Add(new Token(']', Token_Enum.EndLoop, j)); j++; break;
-        case '+': this.tokens.Add(new Token('+', Token_Enum.Increment, j)); j++; break;
-        case '-': this.tokens.Add(new Token('-', Token_Enum.Decrement, j)); j++; break;
-        case ',': this.tokens.Add(new Token(',', Token_Enum.Input, j)); j++; break;
-        case '.': this.tokens.Add(new Token('.', Token_Enum.Output, j)); j++; break;
-        case '<': this.tokens.Add(new Token('<', Token_Enum.MoveLeft, j)); j++; break;
-        case '>': this.tokens.Add(new Token('>', Token_Enum.MoveRight, j)); j++; break;
+        case '[': this.tokens.Add(new Token(Token_Enum.BeginLoop, j)); j++; break;
+        case ']': this.tokens.Add(new Token(Token_Enum.EndLoop, j)); j++; break;
+        case '+': this.tokens.Add(new Token(Token_Enum.Increment, j)); j++; break;
+        case '-': this.tokens.Add(new Token(Token_Enum.Decrement, j)); j++; break;
+        case ',': this.tokens.Add(new Token(Token_Enum.Input, j)); j++; break;
+        case '.': this.tokens.Add(new Token(Token_Enum.Output, j)); j++; break;
+        case '<': this.tokens.Add(new Token(Token_Enum.MoveLeft, j)); j++; break;
+        case '>': this.tokens.Add(new Token(Token_Enum.MoveRight, j)); j++; break;
         default: break; // ignore Error token
       }
       i++;
@@ -84,12 +81,10 @@ public class ASTNode {
   public ASTNode LeftNode { get; set; }
   public ASTNode MiddleNode { get; set; }
   public ASTNode RightNode { get; set; }
-  public char Value { get; }
   public Token_Enum TokenType { get; }
   public ASTNode() {
   }
   public ASTNode(Token token) {
-    Value = token.Literal;
     TokenType = token.TokenType;
   }
 }
@@ -106,7 +101,7 @@ public class Parser {
     ASTNode ast = _program();
     return ast;
   }
-  // [+]
+
   private ASTNode _program() {
     if (_endIndex == -1)  return null;
     if (_isNextTokenEOF()) return null;
@@ -127,7 +122,7 @@ public class Parser {
     if (token == null) return null;
     if (token.IsLoopScan == true) return null;
 
-    if (isTerminals(token.Literal)){
+    if (isTerminals(token.TokenType)){
       return new ASTNode(token);
     }
     else if (token.TokenType == Token_Enum.BeginLoop) {
@@ -155,11 +150,17 @@ public class Parser {
     //extra ]
     throw new Exception("unkown error");
   }
-  private bool isTerminals(char literal) {
-    return literal == '+' || literal == '-' || literal == '>' || literal == '<' || literal == ',' || literal == '.';
+  private bool isTerminals(Token_Enum token_type) {
+    return
+      token_type == Token_Enum.Increment ||
+      token_type == Token_Enum.Decrement ||
+      token_type == Token_Enum.MoveRight ||
+      token_type == Token_Enum.MoveRight ||
+      token_type == Token_Enum.Input ||
+      token_type == Token_Enum.Output;
   }
   private Token _getCurrentToken() {
-    if (_endIndex < _currentIndex) return null;
+    if (_isNextTokenEOF()) return null;
     return _tokens[_currentIndex++];
   }
   private bool _isNextTokenEOF () {
@@ -173,16 +174,6 @@ public class ASTVisitor {
     _ast = ast;
     _ast_str = new StringBuilder(); 
   }
-  public void print() {
-    walk(_ast, 0);
-  }
-  private void walk(ASTNode node, int layer) {
-    if (node == null) return;
-    if (node.Value != '\0') Console.WriteLine(layer + new string(' ', layer) + node.Value);
-    walk(node.LeftNode, layer+1);
-    walk(node.MiddleNode, layer+1);
-    walk(node.RightNode, layer+1);
-  } 
 }
 //public class SemanticAnalyzer {}
 public class CodeGenerator {
@@ -191,17 +182,12 @@ public class CodeGenerator {
     _ast = ast;
   }
   public void gen() {
-    //AppDomain ad = AppDomain.CurrentDomain;
     AssemblyName am = new AssemblyName("bfc");
-    //am.Name = "bfAsm";
-    //AssemblyBuilder ab = ad.DefineDynamicAssembly(am, AssemblyBuilderAccess.Save);
     AssemblyBuilder ab = AssemblyBuilder.DefineDynamicAssembly(am, AssemblyBuilderAccess.Run);
-    //ModuleBuilder mb = ab.DefineDynamicModule("bfMod", "bfAsm.exe");
     ModuleBuilder mb = ab.DefineDynamicModule(am.Name);
     TypeBuilder tb = mb.DefineType("bfcType", TypeAttributes.Public);
     MethodBuilder metb = tb.DefineMethod("bfcCodegen", MethodAttributes.Public |
     MethodAttributes.Static, null, null);
-    //ab.SetEntryPoint(metb);
 
     ILGenerator il = metb.GetILGenerator();
     // setup
@@ -219,12 +205,11 @@ public class CodeGenerator {
 
     il.Emit(OpCodes.Ret);
     Type bfcType = tb.CreateType();
-    //ab.Save("bfAsm.exe");
 
     //codegen start
     MethodInfo mi = bfcType.GetMethod("bfcCodegen");
     mi.Invoke(null, null);
-    
+
     //execute without saving into IL file in .net core
 
   }
@@ -309,34 +294,31 @@ public class CodeGenerator {
   }       
   private void walk(ILGenerator il, ASTNode node, int layer) {
     if (node == null) return;
-    //if (node.Value != '\0') Console.WriteLine(new string(' ', layer) + node.Value);
-    if (node.Value != '\0') {
-      switch(node.TokenType)
-      {
-        //case Token_Enum.BeginLoop:
-        //  break;
-        //case Token_Enum.EndLoop:
-        //  break;
-        case Token_Enum.Output:
-          emit_console_write(il);
-          break;
-        case Token_Enum.Input:
-          emit_console_read(il);
-          break;
-        case Token_Enum.Increment:
-          emit_cell_increment(il);
-          break;
-        case Token_Enum.Decrement:
-          emit_cell_decrement(il);
-          break;
-        case Token_Enum.MoveLeft:
-          emit_ptr_decrement(il);
-          break;
-        case Token_Enum.MoveRight:
-          emit_ptr_increment(il);
-          break;
-        default: break;
-      }
+    switch(node.TokenType)
+    {
+      //case Token_Enum.BeginLoop:
+      //  break;
+      //case Token_Enum.EndLoop:
+      //  break;
+      case Token_Enum.Output:
+        emit_console_write(il);
+        break;
+      case Token_Enum.Input:
+        emit_console_read(il);
+        break;
+      case Token_Enum.Increment:
+        emit_cell_increment(il);
+        break;
+      case Token_Enum.Decrement:
+        emit_cell_decrement(il);
+        break;
+      case Token_Enum.MoveLeft:
+        emit_ptr_decrement(il);
+        break;
+      case Token_Enum.MoveRight:
+        emit_ptr_increment(il);
+        break;
+      default: break;
     }
     Label headLabel = default(Label);
     Label endLabel = default(Label);
