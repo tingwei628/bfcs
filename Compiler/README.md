@@ -8,24 +8,18 @@ Target: CIL
 - Code generator (emit IL)
 - Optimizer
 
+## Compilation and execution
 
-
-### Repl.it
-
-compile with hello_world.bf to generate cil code (bfAsm.exe) 
+Build the compiler "BFC" in `bin/publish/`
 ```
-make compile bf=hello_world.bf
+make release
 ```
 
-execute bfAsm.exe to see bf result
+Compile abc.bf and execute
 ```
-make run
+./BFC abc.bf
 ```
 
-view cil code
-```
-monodis bfAsm.exe
-```
 
 ### Credits in code generation
 [Brainfuck.NET @nikeee](https://github.com/nikeee/Brainfuck.NET)
