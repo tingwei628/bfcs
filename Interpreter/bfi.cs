@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.IO;
 /*
 
 [ ] Read ',' (which converts number to char)
@@ -23,7 +24,7 @@ public class Program {
   string raw_commands = File.ReadAllText(bf_filepath);
   string commands = string.Empty;
   // remove all characters except []<>+-.,
-  commands = Regex.Replace(raw_commands, @ "[^\[\]<>\+-\.,]", string.Empty);
+  commands = Regex.Replace(raw_commands, @"[^\[\]<>\+-\.,]", string.Empty);
   int commands_size = commands.Length;
   int pos_command = 0;
   int pos_tape = 0;
