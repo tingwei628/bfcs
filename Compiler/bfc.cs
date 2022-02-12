@@ -17,8 +17,6 @@ public class BrainFuckCompiler {
     //string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
     var tokens = new Lexer(str).lex();
     var ast = new Parser(tokens).ast();
-    //var visitor = new ASTVisitor(ast);
-    //visitor.print();
     new CodeGenerator(ast).gen();
   }
 }
@@ -35,14 +33,9 @@ public enum Token_Enum {
   MoveRight, /*>*/
 }
 public class Token {
-  //public char Literal { get; }
   public Token_Enum TokenType { get; }
-  public int _pos;
-  public bool IsLoopScan { get; set; }
-  public Token(Token_Enum token_Enum, int pos) {
+  public Token(Token_Enum token_Enum) {
     TokenType = token_Enum;
-    //Literal = literal;
-    _pos = pos;
   }
 }
 public class Lexer {
@@ -57,14 +50,14 @@ public class Lexer {
     int j = 0;
     while(i < len) {
       switch(this._str[i]) {
-        case '[': this.tokens.Add(new Token(Token_Enum.BeginLoop, j)); j++; break;
-        case ']': this.tokens.Add(new Token(Token_Enum.EndLoop, j)); j++; break;
-        case '+': this.tokens.Add(new Token(Token_Enum.Increment, j)); j++; break;
-        case '-': this.tokens.Add(new Token(Token_Enum.Decrement, j)); j++; break;
-        case ',': this.tokens.Add(new Token(Token_Enum.Input, j)); j++; break;
-        case '.': this.tokens.Add(new Token(Token_Enum.Output, j)); j++; break;
-        case '<': this.tokens.Add(new Token(Token_Enum.MoveLeft, j)); j++; break;
-        case '>': this.tokens.Add(new Token(Token_Enum.MoveRight, j)); j++; break;
+        case '[': this.tokens.Add(new Token(Token_Enum.BeginLoop)); j++; break;
+        case ']': this.tokens.Add(new Token(Token_Enum.EndLoop)); j++; break;
+        case '+': this.tokens.Add(new Token(Token_Enum.Increment)); j++; break;
+        case '-': this.tokens.Add(new Token(Token_Enum.Decrement)); j++; break;
+        case ',': this.tokens.Add(new Token(Token_Enum.Input)); j++; break;
+        case '.': this.tokens.Add(new Token(Token_Enum.Output)); j++; break;
+        case '<': this.tokens.Add(new Token(Token_Enum.MoveLeft)); j++; break;
+        case '>': this.tokens.Add(new Token(Token_Enum.MoveRight)); j++; break;
         default: break; // ignore Error token
       }
       i++;
@@ -72,11 +65,6 @@ public class Lexer {
     return tokens;  
   }
 }
-/*
-Program → Instr Program | ε
-Instr → '+' | '-' | '>' | '<' | ',' | '.' | '[' Program ']'
-LL(1)
-*/
 public class ASTNode {
   public ASTNode LeftNode { get; set; }
   public ASTNode MiddleNode { get; set; }
@@ -98,64 +86,77 @@ public class Parser {
     _endIndex = tokens.Count == 0 ? -1 : tokens.Count-1;
   }
   public ASTNode ast() {
+    _checkBracket();
     ASTNode ast = _program();
     return ast;
   }
+  private void _checkBracket() {
+    Stack<int> st = new Stack<int>();
+    for(int index = 0; index < _tokens.Count; index++) {
+      Token token = _tokens[index];
+      if(token.TokenType == Token_Enum.BeginLoop) {
+        st.Push(index);
+      }
+      else if(st.Count == 0 && token.TokenType == Token_Enum.EndLoop) {
+        throw new Exception("no matched [");
+      }
+      else if (token.TokenType == Token_Enum.EndLoop) {
+        st.Pop();
+      }
+    }
+    if(st.Count > 0) {
+      throw new Exception("no matched ]");
+    }
+    
+  }
 
+/*
+Program → Instr Program | ε
+Instr → '+' | '-' | '>' | '<' | ',' | '.' | '[' Program ']'
+*/ 
   private ASTNode _program() {
     if (_endIndex == -1)  return null;
     if (_isNextTokenEOF()) return null;
+    
     
     ASTNode leftNode = _instr();
     if (leftNode == null) return null;
     ASTNode rightNode = _program();
     if (rightNode == null) return leftNode;
     
-    ASTNode ast = new ASTNode();
-    ast.LeftNode = leftNode;
-    ast.RightNode = rightNode;
+    ASTNode root = new ASTNode();
+    root.LeftNode = leftNode;
+    root.RightNode = rightNode;
     
-    return ast;
+    return root;
   }
   private ASTNode _instr() {
     Token token = _getCurrentToken();
-    if (token == null) return null;
-    if (token.IsLoopScan == true) return null;
+    if (token == null)
+      return null;
 
     if (isTerminals(token.TokenType)){
       return new ASTNode(token);
     }
     else if (token.TokenType == Token_Enum.BeginLoop) {
-      int searchIndex_right = _currentIndex;
-      int bracket_right = 1;
-      while(bracket_right > 0) {
-        if (_tokens[searchIndex_right].TokenType == Token_Enum.EndLoop) bracket_right--;
-        else if (_tokens[searchIndex_right].TokenType == Token_Enum.BeginLoop) bracket_right++;
-        if (_endIndex < searchIndex_right || bracket_right == 0) break;
-        searchIndex_right++;
-      }
-      if (bracket_right > 0 ) {
-        throw new Exception("no found ]");
-      }
-      ASTNode ast = new ASTNode();
-      ast.LeftNode = new ASTNode(token);
-      ast.RightNode = new ASTNode(_tokens[searchIndex_right]);
-      token.IsLoopScan = true;
-      _tokens[searchIndex_right].IsLoopScan = true;
-      ASTNode middleNode = _program();
-      if (middleNode != null)  ast.MiddleNode = middleNode;
       
-      return ast;
+      ASTNode leftNode = new ASTNode(token);
+      ASTNode parent = new ASTNode();
+      parent.LeftNode = new ASTNode(new Token(Token_Enum.BeginLoop));
+      parent.RightNode = new ASTNode(new Token(Token_Enum.EndLoop));
+      ASTNode middleNode = _program();
+      if (middleNode != null)  parent.MiddleNode = middleNode;
+      return parent;
     }
-    //extra ]
-    throw new Exception("unkown error");
+    return null;
+    
   }
   private bool isTerminals(Token_Enum token_type) {
     return
       token_type == Token_Enum.Increment ||
       token_type == Token_Enum.Decrement ||
       token_type == Token_Enum.MoveRight ||
-      token_type == Token_Enum.MoveRight ||
+      token_type == Token_Enum.MoveLeft ||
       token_type == Token_Enum.Input ||
       token_type == Token_Enum.Output;
   }
@@ -167,15 +168,6 @@ public class Parser {
     return _endIndex < _currentIndex;
   }
 }
-public class ASTVisitor {
-  public ASTNode _ast { get; }
-  public StringBuilder _ast_str {get; set ;}
-  public ASTVisitor(ASTNode ast) {
-    _ast = ast;
-    _ast_str = new StringBuilder(); 
-  }
-}
-//public class SemanticAnalyzer {}
 public class CodeGenerator {
   public ASTNode _ast { get; }
   public CodeGenerator(ASTNode ast) {
@@ -217,6 +209,10 @@ public class CodeGenerator {
   private static Type[] writeMethodParameters;
   private static MethodInfo readMethod;
   private static readonly Type[] readMethodParameters = null;
+
+  private Stack<Label> _endLabelSt = new Stack<Label>();
+
+  private Stack<Label> _headLabelSt = new Stack<Label>();
 
   private void push_locals(ILGenerator il)
   {
@@ -291,15 +287,34 @@ public class CodeGenerator {
       il.Emit(OpCodes.And);
       il.Emit(OpCodes.Conv_U1);
       il.Emit(OpCodes.Stelem_I1);
-  }       
+  }
+  private void emit_begin_loop(ILGenerator il)
+  {
+      Label headLabel = il.DefineLabel();
+      _headLabelSt.Push(headLabel);
+      
+      il.MarkLabel(headLabel);
+      
+      push_locals(il);
+      il.Emit(OpCodes.Ldelem_U1);
+      il.Emit(OpCodes.Ldc_I4_0);
+      il.Emit(OpCodes.Ceq);
+
+      Label endLabel = il.DefineLabel();
+      _endLabelSt.Push(endLabel);
+      il.Emit(OpCodes.Brtrue, endLabel);
+  }
+  private void emit_end_loop(ILGenerator il)
+  {
+      Label headLabel = _headLabelSt.Pop();
+      il.Emit(OpCodes.Br, headLabel);
+      Label endLabel = _endLabelSt.Pop();
+      il.MarkLabel(endLabel);
+  }
   private void walk(ILGenerator il, ASTNode node, int layer) {
     if (node == null) return;
     switch(node.TokenType)
     {
-      //case Token_Enum.BeginLoop:
-      //  break;
-      //case Token_Enum.EndLoop:
-      //  break;
       case Token_Enum.Output:
         emit_console_write(il);
         break;
@@ -318,28 +333,18 @@ public class CodeGenerator {
       case Token_Enum.MoveRight:
         emit_ptr_increment(il);
         break;
+      case Token_Enum.BeginLoop:
+        emit_begin_loop(il);
+        break;
+      case Token_Enum.EndLoop:
+        emit_end_loop(il);
+        break;
       default: break;
-    }
-    Label headLabel = default(Label);
-    Label endLabel = default(Label);
-    if (node.LeftNode != null && node.LeftNode.TokenType == Token_Enum.BeginLoop) {
-      headLabel = il.DefineLabel();
-      il.MarkLabel(headLabel);
-      push_locals(il);
-      il.Emit(OpCodes.Ldelem_U1);
-      il.Emit(OpCodes.Ldc_I4_0);
-      il.Emit(OpCodes.Ceq);
-      endLabel = il.DefineLabel();
-      il.Emit(OpCodes.Brtrue, endLabel);
     }
     walk(il, node.LeftNode, layer+1);
     
     walk(il, node.MiddleNode, layer+1);
 
-    if (node.RightNode != null && node.RightNode.TokenType == Token_Enum.EndLoop) {
-      il.Emit(OpCodes.Br, headLabel);
-      il.MarkLabel(endLabel);
-    }
     walk(il, node.RightNode, layer+1);
   } 
 }

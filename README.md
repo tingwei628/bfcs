@@ -7,7 +7,7 @@
 
 > Target: CIL
 
-Build the compiler "BFC" in `bin/publish/`
+Build the compiler "BFC" in `release/`
 ```
 cd Compiler
 make release
@@ -15,7 +15,7 @@ make release
 
 Compile abc.bf and execute
 ```
-./BFC abc.bf
+./release/BFC abc.bf
 ```
 
 ## Brainfuck Interpreter in C#
