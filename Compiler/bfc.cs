@@ -91,6 +91,12 @@ public class Parser {
     return ast;
   }
   private void _checkBracket() {
+#if LLVM
+      Console.WriteLine("LLVM");
+#elif BENCHMARK
+      Console.WriteLine("BENCHMARK");
+#else
+#endif
     Stack<int> st = new Stack<int>();
     for(int index = 0; index < _tokens.Count; index++) {
       Token token = _tokens[index];
