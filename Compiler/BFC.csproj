@@ -6,5 +6,20 @@
     <PublishTrimmed>true</PublishTrimmed>
     <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Type)'=='LLVM'">
+      <NoWarn>$(NoWarn);NU1701</NoWarn>
+      <DefineConstants>$(DefineConstants);LLVM</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Type)'=='BENCHMARK'">
+      <DefineConstants>$(DefineConstants);BENCHMARK</DefineConstants>
+  </PropertyGroup>
+
+
+  <ItemGroup Condition="$(DefineConstants.Contains('BANCHMARK'))">
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
+  </ItemGroup>
+  <ItemGroup Condition="$(DefineConstants.Contains('LLVM'))">
+    <PackageReference Include="llvmsharp" Version="5.0.0" />
+  </ItemGroup>
 
 </Project>
