@@ -5,18 +5,34 @@
 
 ## Brainfuck Compiler in C#
 
-> Target: CIL
+> Targets: CIL and LLVM IR
 
 Build the compiler "BFC" in `release/`
 ```
 cd Compiler
-make release
+make cil
 ```
 
 Compile abc.bf and execute
 ```
 ./release/BFC abc.bf
 ```
+
+### LLVM backend
+
+From the repository root, emit LLVM IR and build a native executable with
+Clang 15 or newer on a 64-bit target with a C standard library.
+
+```sh
+dotnet build Compiler/BFC.csproj
+dotnet Compiler/bin/Debug/netcoreapp3.1/BFC.dll --emit-llvm Compiler/test/hello_world.bf > hello.ll
+clang -O2 -Wno-override-module hello.ll -o hello
+./hello
+```
+
+The native executable uses byte I/O and wraps cells modulo 256. End of input
+stores 255. The tape grows when a program accesses a new cell on the right.
+Accessing a negative cell exits with an error.
 
 ## Brainfuck Interpreter in C#
 
