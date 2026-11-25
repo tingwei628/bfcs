@@ -70,10 +70,14 @@ public class ASTNode {
   public ASTNode MiddleNode { get; set; }
   public ASTNode RightNode { get; set; }
   public Token_Enum TokenType { get; }
+  public int RepeatCount { get; } = 1;
   public ASTNode() {
   }
-  public ASTNode(Token token) {
+  public ASTNode(Token token) : this(token, 1) {
+  }
+  internal ASTNode(Token token, int repeatCount) {
     TokenType = token.TokenType;
+    RepeatCount = repeatCount;
   }
 }
 public class Parser {
@@ -143,7 +147,16 @@ Instr → '+' | '-' | '>' | '<' | ',' | '.' | '[' Program ']'
     if (token == null)
       return null;
 
-    if (isTerminals(token.TokenType)){
+    if (token.TokenType == Token_Enum.Increment || token.TokenType == Token_Enum.Decrement ||
+        token.TokenType == Token_Enum.MoveLeft || token.TokenType == Token_Enum.MoveRight) {
+      int count = 1;
+      while (!_isNextTokenEOF() && _tokens[_currentIndex].TokenType == token.TokenType) {
+        _currentIndex++;
+        count++;
+      }
+      return new ASTNode(token, count);
+    }
+    if (token.TokenType == Token_Enum.Input || token.TokenType == Token_Enum.Output) {
       return new ASTNode(token);
     }
     else if (token.TokenType == Token_Enum.BeginLoop) {
@@ -157,15 +170,6 @@ Instr → '+' | '-' | '>' | '<' | ',' | '.' | '[' Program ']'
     }
     return null;
     
-  }
-  private bool isTerminals(Token_Enum token_type) {
-    return
-      token_type == Token_Enum.Increment ||
-      token_type == Token_Enum.Decrement ||
-      token_type == Token_Enum.MoveRight ||
-      token_type == Token_Enum.MoveLeft ||
-      token_type == Token_Enum.Input ||
-      token_type == Token_Enum.Output;
   }
   private Token _getCurrentToken() {
     if (_isNextTokenEOF()) return null;
@@ -243,29 +247,26 @@ public class CodeGenerator {
   {
       il.Emit(OpCodes.Stobj, typeof(byte));
   }
-  private void emit_cell_increment(ILGenerator il)
-  {
-      //++memory[ptr];
-      emit_load_memory(il);
+  private static void emit_repeat_count(ILGenerator il, int count) {
+    if (count == 1)
       il.Emit(OpCodes.Ldc_I4_1);
-      il.Emit(OpCodes.Add);
+    else if (count <= sbyte.MaxValue)
+      il.Emit(OpCodes.Ldc_I4_S, (sbyte)count);
+    else
+      il.Emit(OpCodes.Ldc_I4, count);
+  }
+  private void emit_cell_change(ILGenerator il, OpCode operation, int count)
+  {
+      emit_load_memory(il);
+      emit_repeat_count(il, count);
+      il.Emit(operation);
       il.Emit(OpCodes.Conv_U1);
       emit_save_memory(il);
   }
-  private void emit_cell_decrement(ILGenerator il)
+  private void emit_ptr_increment(ILGenerator il, int count)
   {
-      //--memory[ptr];
-      emit_load_memory(il);
-      il.Emit(OpCodes.Ldc_I4_1);
-      il.Emit(OpCodes.Sub);
-      il.Emit(OpCodes.Conv_U1);
-      emit_save_memory(il);
-  }
-  private void emit_ptr_increment(ILGenerator il)
-  {
-      //++ptr;
       il.Emit(OpCodes.Ldloc_1);
-      il.Emit(OpCodes.Ldc_I4_1);
+      emit_repeat_count(il, count);
       il.Emit(OpCodes.Add_Ovf);
       il.Emit(OpCodes.Stloc_1);
 
@@ -280,11 +281,10 @@ public class CodeGenerator {
       il.Emit(OpCodes.Call, typeof(CodeGenerator).GetMethod(nameof(GrowTape)));
       il.MarkLabel(withinTape);
   }
-  private void emit_ptr_decrement(ILGenerator il)
+  private void emit_ptr_decrement(ILGenerator il, int count)
   {
-      //--ptr;
       il.Emit(OpCodes.Ldloc_1);
-      il.Emit(OpCodes.Ldc_I4_1);
+      emit_repeat_count(il, count);
       il.Emit(OpCodes.Sub);
       il.Emit(OpCodes.Stloc_1);
   }
@@ -345,16 +345,16 @@ public class CodeGenerator {
         emit_console_read(il);
         break;
       case Token_Enum.Increment:
-        emit_cell_increment(il);
+        emit_cell_change(il, OpCodes.Add, node.RepeatCount);
         break;
       case Token_Enum.Decrement:
-        emit_cell_decrement(il);
+        emit_cell_change(il, OpCodes.Sub, node.RepeatCount);
         break;
       case Token_Enum.MoveLeft:
-        emit_ptr_decrement(il);
+        emit_ptr_decrement(il, node.RepeatCount);
         break;
       case Token_Enum.MoveRight:
-        emit_ptr_increment(il);
+        emit_ptr_increment(il, node.RepeatCount);
         break;
       case Token_Enum.BeginLoop:
         emit_begin_loop(il);
