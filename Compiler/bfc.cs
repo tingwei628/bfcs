@@ -123,8 +123,10 @@ Instr → '+' | '-' | '>' | '<' | ',' | '.' | '[' Program ']'
   private ASTNode _program() {
     if (_endIndex == -1)  return null;
     if (_isNextTokenEOF()) return null;
-    
-    
+    // A closing bracket ends the current loop body. Leave it for the loop
+    // instruction to consume so it cannot be mistaken for another command.
+    if (_tokens[_currentIndex].TokenType == Token_Enum.EndLoop) return null;
+
     ASTNode leftNode = _instr();
     if (leftNode == null) return null;
     ASTNode rightNode = _program();
@@ -145,13 +147,12 @@ Instr → '+' | '-' | '>' | '<' | ',' | '.' | '[' Program ']'
       return new ASTNode(token);
     }
     else if (token.TokenType == Token_Enum.BeginLoop) {
-      
-      ASTNode leftNode = new ASTNode(token);
       ASTNode parent = new ASTNode();
       parent.LeftNode = new ASTNode(new Token(Token_Enum.BeginLoop));
       parent.RightNode = new ASTNode(new Token(Token_Enum.EndLoop));
       ASTNode middleNode = _program();
       if (middleNode != null)  parent.MiddleNode = middleNode;
+      _getCurrentToken(); // consume the matching closing bracket
       return parent;
     }
     return null;
