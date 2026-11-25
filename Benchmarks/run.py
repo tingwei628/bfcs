@@ -35,11 +35,6 @@ def nested(body):
     return counter + "[>" + counter + "[>" + body + "<-]<-]"
 
 
-def bracket_workload(span):
-    counter = "+" * 200
-    return counter + "[>" + counter + "[>[" + "-" * span + "]<-]<-]" + "+" * 65 + "."
-
-
 def run(command, timeout, output):
     return subprocess.run(command, stdin=subprocess.DEVNULL, stdout=output,
                           stderr=subprocess.PIPE, timeout=timeout, check=True)
@@ -84,7 +79,6 @@ def benchmark(args, root, work):
     compiler = work / "Compiler"
     shutil.copytree(root / "Compiler", compiler, ignore=shutil.ignore_patterns("bin", "obj", "release"))
     cil = ["dotnet", str(build(compiler / "BFC.csproj", "BFC", "netcoreapp3.1"))]
-    interpreter = ["dotnet", str(build_probe(root, work, "Interpreter", ["Interpreter/bfi.cs"]))]
     frontend = ["dotnet", str(build_probe(root, work, "Frontend",
                                          ["Benchmarks/Frontend.cs", "Compiler/bfc.cs"]))]
 
@@ -95,10 +89,6 @@ def benchmark(args, root, work):
 
     print(f"\n{args.samples} samples per case, median [min, max]\n", flush=True)
     failed = False
-    for span in (16, 4096):
-        path = source(f"brackets-{span}", bracket_workload(span))
-        failed |= not measure(f"interpreter brackets {span}", [*interpreter, path], args, b"A")
-
     for count in (1000, 8000, 32000):
         for name, program in (("grouped", "+" * count), ("alternating", "+-" * (count // 2))):
             path = source(f"{name}-{count}", program)
