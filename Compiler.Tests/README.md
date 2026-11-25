@@ -17,3 +17,13 @@ indices of a `byte[]`.
 - `stelem.i1` takes an array, index, and value. `stind.i1` and `stobj uint8`
   take an address and value. For an array element, obtain the address with
   `ldelema uint8` before loading the value to store.
+
+## LLVM integration checks
+
+Run these checks from the repository root with Clang 15 or newer and a built
+BFC. The script accepts the command used to start the compiler.
+
+```sh
+dotnet build Compiler/BFC.csproj
+sh Compiler.Tests/test-llvm.sh dotnet Compiler/bin/Debug/netcoreapp3.1/BFC.dll
+```

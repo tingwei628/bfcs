@@ -12,12 +12,15 @@ public class BrainFuckCompiler {
   }
   public void compile() {
     if (this._args.Length < 1) throw new ArgumentNullException("no bf file");
-    string bf_filepath = this._args[0];
-    string str = File.ReadAllText(bf_filepath);
-    //string str = @"+[>[<->+[>+++>[+++++++++++>][]-[<]>-]]++++++++++<]>>>>>>----.<<+++.<-..+++.<-.>>>.<<.+++.------.>-.<<+.<.";
-    var tokens = new Lexer(str).lex();
-    var ast = new Parser(tokens).ast();
-    new CodeGenerator(ast).gen();
+#if BENCHMARK
+    Console.WriteLine("BENCHMARK");
+#endif
+    new CodeGenerator(ParseFile(this._args[0])).gen();
+  }
+
+  internal static ASTNode ParseFile(string path) {
+    var tokens = new Lexer(File.ReadAllText(path)).lex();
+    return new Parser(tokens).ast();
   }
 }
 
@@ -95,12 +98,6 @@ public class Parser {
     return ast;
   }
   private void _checkBracket() {
-#if LLVM
-      Console.WriteLine("LLVM");
-#elif BENCHMARK
-      Console.WriteLine("BENCHMARK");
-#else
-#endif
     Stack<int> st = new Stack<int>();
     for(int index = 0; index < _tokens.Count; index++) {
       Token token = _tokens[index];

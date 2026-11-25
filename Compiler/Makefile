@@ -19,6 +19,6 @@ clean:
 cil:
 	dotnet publish -c Release -r $(OS_RUNTIME) -o $(PUBLISH_DIR)
 llvm:
-	dotnet publish -c Release -p:Type="LLVM" -r $(OS_RUNTIME) -o $(PUBLISH_DIR)/llvm
+	dotnet publish -c Release -r $(OS_RUNTIME) -o $(PUBLISH_DIR)/llvm
 benchmark:
 	dotnet publish -c Release -p:Type="BENCHMARK" -r $(OS_RUNTIME) -o $(PUBLISH_DIR)/benchmark
