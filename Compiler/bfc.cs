@@ -191,8 +191,10 @@ public class CodeGenerator {
     // setup
     il.DeclareLocal(typeof(byte[]));
     il.DeclareLocal(typeof(int));
-     // byte[3000]
-    il.Emit(OpCodes.Ldc_I4, 3000);
+    // The pointer cannot move farther right than the total number of right
+    // moves in the program. Size the tape from the program instead of
+    // imposing a fixed 3000-cell limit.
+    il.Emit(OpCodes.Ldc_I4, Math.Max(3000, countRightMoves(_ast) + 1));
     il.Emit(OpCodes.Newarr, typeof(byte));
     il.Emit(OpCodes.Stloc_0);
     // int ptr = 0
@@ -219,6 +221,14 @@ public class CodeGenerator {
   private Stack<Label> _endLabelSt = new Stack<Label>();
 
   private Stack<Label> _headLabelSt = new Stack<Label>();
+
+  private static int countRightMoves(ASTNode node) {
+    if (node == null) return 0;
+    return (node.TokenType == Token_Enum.MoveRight ? 1 : 0)
+      + countRightMoves(node.LeftNode)
+      + countRightMoves(node.MiddleNode)
+      + countRightMoves(node.RightNode);
+  }
 
   private void push_locals(ILGenerator il)
   {
