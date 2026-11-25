@@ -43,3 +43,32 @@ make run bf=./abc.bf
 [other brainfuck implementations](https://esolangs.org/wiki/Brainfuck_implementations)
 
 [JITBrainfuck@JLChnToZ](https://github.com/JLChnToZ/JITBrainfuck)
+
+## Bootstrapping a Brainfuck compiler
+
+To self-host, implement a compiler in Brainfuck that reads Brainfuck source
+from standard input and emits a compilable representation to standard output.
+Use a text format such as C so the compiler can emit it with ordinary byte I/O.
+For the first version, translate the eight commands directly and validate
+bracket pairing. Use the same input termination convention in both stages.
+
+Once you have that implementation in `compiler.bf`, use BFC as the seed.
+The following example assumes the Brainfuck compiler emits C.
+
+```sh
+BFC=./Compiler/release/BFC
+"$BFC" compiler.bf < compiler.bf > stage1.c
+cc stage1.c -o stage1
+./stage1 < compiler.bf > stage2.c
+cc stage2.c -o stage2
+./stage2 < compiler.bf > stage3.c
+cmp stage2.c stage3.c
+./stage2 < Compiler/test/hello_world.bf > hello.c
+cc hello.c -o hello
+./hello
+```
+
+The comparison checks that the compiler's output has stabilized for its own
+source. Running the generated example also checks that the result can compile
+a separate program. This repository supplies the C# seed compiler. The
+`compiler.bf` implementation is a separate program you provide.
