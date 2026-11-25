@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Xunit;
 
+[Collection("Console output")]
 public class ParserTests
 {
     [Fact]
