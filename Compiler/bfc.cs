@@ -182,6 +182,10 @@ public class CodeGenerator {
     _ast = ast;
   }
   public void gen() {
+    GenerateMethod().Invoke(null, null);
+  }
+
+  internal MethodInfo GenerateMethod() {
     AssemblyName am = new AssemblyName("bfc");
     AssemblyBuilder ab = AssemblyBuilder.DefineDynamicAssembly(am, AssemblyBuilderAccess.Run);
     ModuleBuilder mb = ab.DefineDynamicModule(am.Name);
@@ -204,13 +208,7 @@ public class CodeGenerator {
 
     il.Emit(OpCodes.Ret);
     Type bfcType = tb.CreateType();
-
-    //codegen start
-    MethodInfo mi = bfcType.GetMethod("bfcCodegen");
-    mi.Invoke(null, null);
-
-    //execute without saving into IL file in .net core
-
+    return bfcType.GetMethod("bfcCodegen");
   }
   private static MethodInfo writeMethod;
   private static Type[] writeMethodParameters;

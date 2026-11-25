@@ -2,6 +2,7 @@
 """Run bfcs performance probes with no third-party Python packages."""
 
 import argparse
+import os
 import shutil
 import statistics
 import subprocess
@@ -35,29 +36,28 @@ def nested(body):
     return counter + "[>" + counter + "[>" + body + "<-]<-]"
 
 
-def run(command, timeout, output):
+def run(command, timeout, output, env=None):
     return subprocess.run(command, stdin=subprocess.DEVNULL, stdout=output,
-                          stderr=subprocess.PIPE, timeout=timeout, check=True)
+                          stderr=subprocess.PIPE, timeout=timeout, env=env, check=True)
 
 
-def measure(label, command, args, expected=None, frontend=False):
+def measure(label, command, args, expected=None, phases=False):
+    env = {**os.environ, "DOTNET_TieredCompilation": "0"} if phases else None
     try:
-        result = run(command, args.timeout, subprocess.PIPE)
+        result = run(command, args.timeout, subprocess.PIPE, env)
         if expected is not None and result.stdout != expected:
             print(f"{label:32} INVALID OUTPUT ({len(result.stdout)} bytes)")
             return False
 
         elapsed = []
-        allocations = []
+        phase_samples = []
         for _ in range(args.samples):
             start = time.perf_counter()
             result = run(command, args.timeout,
-                         subprocess.PIPE if frontend else subprocess.DEVNULL)
+                         subprocess.PIPE if phases else subprocess.DEVNULL, env)
             wall_ms = (time.perf_counter() - start) * 1000
-            if frontend:
-                milliseconds, count = result.stdout.split()
-                elapsed.append(float(milliseconds))
-                allocations.append(int(count))
+            if phases:
+                phase_samples.append([float(value) for value in result.stdout.split()])
             else:
                 elapsed.append(wall_ms)
     except subprocess.TimeoutExpired:
@@ -69,18 +69,29 @@ def measure(label, command, args, expected=None, frontend=False):
         print(f"{label:32} ERROR ({error.returncode}): {detail}")
         return False
 
-    allocation = f", {statistics.median(allocations):,.0f} allocated bytes" if frontend else ""
-    print(f"{label:32} {statistics.median(elapsed):9.3f} ms "
-          f"[{min(elapsed):.3f}, {max(elapsed):.3f}]{allocation}")
+    if phases:
+        frontend, allocated, emit, jit, execute = zip(*phase_samples)
+        report(f"frontend {label}", frontend,
+               f", {statistics.median(allocated):,.0f} allocated bytes")
+        report(f"CIL emit {label}", emit)
+        report(f"CIL JIT {label}", jit)
+        report(f"CIL execute {label}", execute)
+    else:
+        report(label, elapsed)
     return True
+
+
+def report(label, elapsed, suffix=""):
+    print(f"{label:32} {statistics.median(elapsed):9.3f} ms "
+          f"[{min(elapsed):.3f}, {max(elapsed):.3f}]{suffix}")
 
 
 def benchmark(args, root, work):
     compiler = work / "Compiler"
     shutil.copytree(root / "Compiler", compiler, ignore=shutil.ignore_patterns("bin", "obj", "release"))
     cil = ["dotnet", str(build(compiler / "BFC.csproj", "BFC", "netcoreapp3.1"))]
-    frontend = ["dotnet", str(build_probe(root, work, "Frontend",
-                                         ["Benchmarks/Frontend.cs", "Compiler/bfc.cs"]))]
+    phases = ["dotnet", str(build_probe(root, work, "CompilerPhases",
+                                       ["Benchmarks/CompilerPhases.cs", "Compiler/bfc.cs"]))]
 
     def source(name, program):
         path = work / f"{name}.bf"
@@ -92,7 +103,7 @@ def benchmark(args, root, work):
     for count in (1000, 8000, 32000):
         for name, program in (("grouped", "+" * count), ("alternating", "+-" * (count // 2))):
             path = source(f"{name}-{count}", program)
-            failed |= not measure(f"frontend {name} {count}", [*frontend, path], args, frontend=True)
+            failed |= not measure(f"{name} {count}", [*phases, path], args, phases=True)
             failed |= not measure(f"CIL {name} {count}", [*cil, path], args, b"")
 
     scenarios = (

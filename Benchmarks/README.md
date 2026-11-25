@@ -19,11 +19,12 @@ runtimes when evaluating a change.
 | Probe | What it measures |
 | --- | --- |
 | Compiler front end | Time and current-thread managed allocation for lexing and parsing after a small warmup. File reading is outside the measurement. Identical instruction counts are arranged as a single run or alternating instructions to vary the size of the AST. |
+| CIL phases | IL generation (including dynamic type creation), native code preparation via `RuntimeHelpers.PrepareMethod`, and one invocation of the prepared method. The probe warms up with a separate method and disables tiered compilation. |
 | CIL flat inputs | End-to-end process time for those same inputs, including startup, parsing, IL generation, JIT, and execution. |
 | Cell clearing | 62,500 resets starting with a cell value of 255. The Brainfuck control writes the equivalent result with a single increment from 255. |
 | Output | The same nested-loop structure with one write or 1,000,001 writes. The timed output goes to the null device, so terminal rendering is outside the measurement. |
 
-CIL timings include process startup. LLVM timings start from
+CIL end-to-end timings include process startup and use the default runtime settings. The separate phase medians describe a warmed harness with tiering disabled and are not expected to add up to the end-to-end median. LLVM timings start from
 a native binary compiled with Clang `-O2`, so IR generation and linking are
 outside the measurement. Each pair is intended for comparison within its
 own backend. The controls can also change the optimizer's ability to
@@ -36,13 +37,17 @@ and Clang 19.1.7. Values are median wall time in milliseconds unless noted.
 
 | Probe | Baseline comparison |
 | --- | --- |
-| Front end, 32,000 grouped → alternating instructions | 2.78 → 6.27 ms and 1,292,800 → 4,364,704 allocated bytes |
-| CIL, 32,000 grouped → alternating instructions | 45.9 → 278.6 ms |
-| Cell clearing, direct → loop | CIL 54.8 → 87.3 ms, LLVM 0.85 → 35.4 ms |
-| Output, one → 1,000,001 writes | CIL 60.9 → 220.2 ms, LLVM 0.92 → 6.29 ms |
+| Front end, 32,000 grouped → alternating instructions | 0.95 → 3.55 ms and 1,292,800 → 4,364,704 allocated bytes |
+| CIL emission and type creation, same inputs | 0.20 → 89.44 ms |
+| CIL JIT preparation, same inputs | 0.09 → 160.56 ms |
+| CIL prepared invocation, same inputs | 0.01 → 0.20 ms |
+| CIL end to end, same inputs | 55.8 → 293.3 ms |
+| Cell clearing, direct → loop | CIL 60.8 → 97.4 ms, LLVM 0.88 → 42.0 ms |
+| Output, one → 1,000,001 writes | CIL 63.6 → 270.3 ms, LLVM 1.29 → 5.71 ms |
 
-For CIL, the difference between front-end and end-to-end timings motivates profiling
-IL generation and JIT cost before changing the parser. The 32,000-instruction
+JIT preparation was the largest measured phase for the alternating input,
+followed by IL generation. Reducing emitted IL for mixed arithmetic runs is
+a candidate to measure before optimizing parser allocation. The 32,000-instruction
 cases completed, so this run did not establish a stack limit. The cell-clearing
 and output probes justify testing candidate optimizations on representative
 programs if those workloads matter. These figures describe synthetic fixtures
