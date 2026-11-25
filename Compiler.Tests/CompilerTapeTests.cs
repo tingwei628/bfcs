@@ -1,53 +1,48 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using Xunit;
 
 public class CompilerTapeTests
 {
     [Fact]
-    public void CompilerSupportsAccessBeyondTheOriginalTapeLimit()
+    public void CompilerPreservesExistingCellsWhenTapeGrows()
     {
-        var instructions = new List<ASTNode>();
-        for (var index = 0; index < 3000; index++)
-        {
-            instructions.Add(new ASTNode(new Token(Token_Enum.MoveRight)));
-        }
+        var source = new string('>', 2999) + new string('+', 'A') + "." +
+            ">" + new string('+', 'B') + ".<.";
 
-        for (var index = 0; index < 65; index++)
-        {
-            instructions.Add(new ASTNode(new Token(Token_Enum.Increment)));
-        }
+        Assert.Equal("ABA", CompileAndCaptureOutput(source));
+    }
 
-        instructions.Add(new ASTNode(new Token(Token_Enum.Output)));
-        var ast = BuildBalancedSequence(instructions, 0, instructions.Count);
+    [Fact]
+    public void CompilerGrowsTapeWhenALoopRepeatsRightMoves()
+    {
+        var right = new string('>', 50);
+        var left = new string('<', 50);
+        // Transfer the counter 50 cells to the right, then decrement it.
+        // After 125 iterations the pointer is at index 6250.
+        var source = new string('+', 125) + "[[-" + right + "+" + left +
+            "]" + right + "-]" + new string('+', 'A') + ".";
+
+        Assert.Equal("A", CompileAndCaptureOutput(source));
+    }
+
+    private static string CompileAndCaptureOutput(string source)
+    {
+        var path = Path.GetTempFileName();
         var originalOutput = Console.Out;
         using var output = new StringWriter();
 
         try
         {
+            File.WriteAllText(path, source);
             Console.SetOut(output);
-            new CodeGenerator(ast).gen();
+            new BrainFuckCompiler(new[] { path }).compile();
+            return output.ToString();
         }
         finally
         {
             Console.SetOut(originalOutput);
+            File.Delete(path);
         }
-
-        Assert.Equal("A", output.ToString());
-    }
-
-    private static ASTNode BuildBalancedSequence(IReadOnlyList<ASTNode> instructions, int start, int count)
-    {
-        if (count == 1) return instructions[start];
-
-        var leftCount = count / 2;
-        var sequence = new ASTNode
-        {
-            LeftNode = BuildBalancedSequence(instructions, start, leftCount),
-            RightNode = BuildBalancedSequence(instructions, start + leftCount, count - leftCount)
-        };
-
-        return sequence;
     }
 }

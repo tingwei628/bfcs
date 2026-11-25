@@ -191,10 +191,7 @@ public class CodeGenerator {
     // setup
     il.DeclareLocal(typeof(byte[]));
     il.DeclareLocal(typeof(int));
-    // The pointer cannot move farther right than the total number of right
-    // moves in the program. Size the tape from the program instead of
-    // imposing a fixed 3000-cell limit.
-    il.Emit(OpCodes.Ldc_I4, Math.Max(3000, countRightMoves(_ast) + 1));
+    il.Emit(OpCodes.Ldc_I4, 3000);
     il.Emit(OpCodes.Newarr, typeof(byte));
     il.Emit(OpCodes.Stloc_0);
     // int ptr = 0
@@ -222,12 +219,10 @@ public class CodeGenerator {
 
   private Stack<Label> _headLabelSt = new Stack<Label>();
 
-  private static int countRightMoves(ASTNode node) {
-    if (node == null) return 0;
-    return (node.TokenType == Token_Enum.MoveRight ? 1 : 0)
-      + countRightMoves(node.LeftNode)
-      + countRightMoves(node.MiddleNode)
-      + countRightMoves(node.RightNode);
+  // The generated method runs in a separate assembly, so it needs public access.
+  public static void GrowTape(ref byte[] tape, int position) {
+    long capacity = Math.Max((long)position + 1, (long)tape.Length * 2);
+    Array.Resize(ref tape, (int)Math.Min(capacity, int.MaxValue));
   }
 
   private void push_locals(ILGenerator il)
@@ -270,8 +265,19 @@ public class CodeGenerator {
       //++ptr;
       il.Emit(OpCodes.Ldloc_1);
       il.Emit(OpCodes.Ldc_I4_1);
-      il.Emit(OpCodes.Add);
+      il.Emit(OpCodes.Add_Ovf);
       il.Emit(OpCodes.Stloc_1);
+
+      Label withinTape = il.DefineLabel();
+      il.Emit(OpCodes.Ldloc_1);
+      il.Emit(OpCodes.Ldloc_0);
+      il.Emit(OpCodes.Ldlen);
+      il.Emit(OpCodes.Conv_I4);
+      il.Emit(OpCodes.Blt, withinTape);
+      il.Emit(OpCodes.Ldloca_S, (byte)0);
+      il.Emit(OpCodes.Ldloc_1);
+      il.Emit(OpCodes.Call, typeof(CodeGenerator).GetMethod(nameof(GrowTape)));
+      il.MarkLabel(withinTape);
   }
   private void emit_ptr_decrement(ILGenerator il)
   {
